@@ -7,21 +7,22 @@ from typing import Any
 
 
 QUESTION_GENERATION_SYSTEM_PROMPT = """
-You are an expert recruiter creating a 15-minute screening interview from a candidate profile.
+You are an expert recruiter creating a 15-minute screening interview from a candidate profile and a target job.
 Return only valid JSON.
 Generate exactly 5 questions.
-Every question must be grounded in the profile.
+Every question must be grounded in both the profile and the job.
 Do not ask generic filler questions.
 """.strip()
 
 
-def build_candidate_brief_prompt(normalized_profile: dict[str, Any]) -> str:
+def build_candidate_brief_prompt(normalized_profile: dict[str, Any], normalized_job_offer: dict[str, Any] | None) -> str:
     """Build a prompt asking an LLM to summarize a profile into a compact brief."""
     return (
         "Build a recruiter-ready candidate brief from this normalized profile. "
         "Return valid JSON with keys: profile_key, candidate_name, current_title, years_of_experience, "
-        "seniority, top_skills, strongest_experiences, certifications, profile_text.\n"
-        f"{json.dumps(normalized_profile, ensure_ascii=True)}"
+        "seniority, top_skills, strongest_experiences, certifications, profile_text, target_job.\n"
+        f"Profile: {json.dumps(normalized_profile, ensure_ascii=True)}\n"
+        f"Job: {json.dumps(normalized_job_offer or {}, ensure_ascii=True)}"
     )
 
 
@@ -32,7 +33,7 @@ def build_question_generation_prompt(candidate_brief: dict[str, Any]) -> str:
         "Return valid JSON in the form {\"questions\": [...]} where each question contains: "
         "id, category, question, why_it_matters, expected_signals, scoring_criteria, priority. "
         "Questions must cover intro/synthesis, experience validation, skill validation, situational or technical, "
-        "and projection/motivation. Avoid generic phrasing.\n"
+        "and projection/motivation. Avoid generic phrasing. Each question must test candidate fit for the target job, not just the profile alone.\n"
         f"{json.dumps(candidate_brief, ensure_ascii=True)}"
     )
 

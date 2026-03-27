@@ -21,7 +21,9 @@ class SessionRecord:
 
     session_id: str
     raw_profile: dict[str, Any]
+    raw_job_offer: dict[str, Any] | None
     normalized_profile: dict[str, Any]
+    normalized_job_offer: dict[str, Any] | None
     candidate_brief: dict[str, Any]
     generated_questions: list[dict[str, Any]] = field(default_factory=list)
     answers: list[dict[str, Any]] = field(default_factory=list)
@@ -47,14 +49,18 @@ class SessionStore:
     def create_session(
         self,
         raw_profile: dict[str, Any],
+        raw_job_offer: dict[str, Any] | None,
         normalized_profile: dict[str, Any],
+        normalized_job_offer: dict[str, Any] | None,
         candidate_brief: dict[str, Any],
     ) -> SessionRecord:
         """Create and persist a new interview session."""
         record = SessionRecord(
             session_id=str(uuid4()),
             raw_profile=deepcopy(raw_profile),
+            raw_job_offer=deepcopy(raw_job_offer),
             normalized_profile=deepcopy(normalized_profile),
+            normalized_job_offer=deepcopy(normalized_job_offer),
             candidate_brief=deepcopy(candidate_brief),
         )
         with self._lock:

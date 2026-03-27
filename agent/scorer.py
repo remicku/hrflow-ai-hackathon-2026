@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import re
 from typing import Any
 
@@ -30,16 +29,20 @@ class InterviewScorer:
         question_tokens = set(_tokenize(question.get("question", "")))
         profile_terms = set(_tokenize(candidate_brief.get("profile_text", "")))
         skill_terms = {token.lower() for token in candidate_brief.get("top_skills", [])}
+        target_job = candidate_brief.get("target_job") or {}
+        job_terms = set(_tokenize(target_job.get("job_text", "")))
+        target_skill_terms = {token.lower() for token in target_job.get("target_skills", [])}
         expected_signals = {token.lower() for token in question.get("expected_signals", [])}
         word_count = len(answer_tokens)
 
         relevance = self._score_relevance(answer_tokens, question_tokens, expected_signals)
         specificity = self._score_specificity(answer, word_count)
         consistency = self._score_consistency(answer_tokens, profile_terms, skill_terms)
+        job_alignment = self._score_job_alignment(answer_tokens, job_terms, target_skill_terms)
         clarity = self._score_clarity(answer, word_count)
         technical = self._score_technical_accuracy(question, answer)
 
-        active_scores = [relevance, specificity, consistency, clarity]
+        active_scores = [relevance, specificity, consistency, job_alignment, clarity]
         if technical is not None:
             active_scores.append(technical)
         normalized_score = round(sum(active_scores) / len(active_scores), 1)
@@ -52,6 +55,8 @@ class InterviewScorer:
             strengths.append("The answer includes concrete details rather than generic claims.")
         if consistency >= 70:
             strengths.append("The response aligns well with the candidate profile.")
+        if job_alignment >= 70:
+            strengths.append("The answer clearly connects the candidate to the target role.")
         if clarity >= 70:
             strengths.append("The explanation is structured and easy to follow.")
         if technical is not None and technical >= 70:
@@ -63,6 +68,8 @@ class InterviewScorer:
             concerns.append("The answer lacks concrete examples or outcomes.")
         if consistency < 55:
             concerns.append("The response does not strongly connect back to the profile.")
+        if job_alignment < 55:
+            concerns.append("The answer does not clearly explain fit for the target job.")
         if clarity < 55:
             concerns.append("The explanation is hard to follow or too brief.")
         if technical is not None and technical < 55:
@@ -72,11 +79,12 @@ class InterviewScorer:
             concerns = ["No transcript was provided."]
             strengths = []
 
-        rationale = self._build_rationale(relevance, specificity, consistency, clarity, technical)
+        rationale = self._build_rationale(relevance, specificity, consistency, job_alignment, clarity, technical)
         subscores = {
             "relevance": relevance,
             "specificity": specificity,
             "consistency_with_profile": consistency,
+            "job_alignment": job_alignment,
             "clarity": clarity,
             "technical_accuracy": technical,
         }
@@ -111,6 +119,14 @@ class InterviewScorer:
         profile_overlap = len(set(answer_tokens) & profile_terms)
         skill_overlap = len(set(answer_tokens) & skill_terms)
         raw = 30 + profile_overlap * 4 + skill_overlap * 8
+        return round(_bounded(raw))
+
+    def _score_job_alignment(self, answer_tokens: list[str], job_terms: set[str], target_skill_terms: set[str]) -> float:
+        if not answer_tokens:
+            return 0.0
+        job_overlap = len(set(answer_tokens) & job_terms)
+        target_skill_overlap = len(set(answer_tokens) & target_skill_terms)
+        raw = 28 + job_overlap * 4 + target_skill_overlap * 10
         return round(_bounded(raw))
 
     def _score_clarity(self, answer: str, word_count: int) -> float:
@@ -150,6 +166,7 @@ class InterviewScorer:
         relevance: float,
         specificity: float,
         consistency: float,
+        job_alignment: float,
         clarity: float,
         technical: float | None,
     ) -> str:
@@ -157,6 +174,7 @@ class InterviewScorer:
             f"Relevance is {int(relevance)}/100",
             f"specificity is {int(specificity)}/100",
             f"profile consistency is {int(consistency)}/100",
+            f"job alignment is {int(job_alignment)}/100",
             f"clarity is {int(clarity)}/100",
         ]
         if technical is not None:
