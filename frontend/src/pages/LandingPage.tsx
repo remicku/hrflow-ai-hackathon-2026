@@ -3,7 +3,7 @@ import {
   BrainCircuit, Zap, Shield, BarChart3, AlertCircle, Loader2,
   KeyRound, Hash, AtSign, ChevronRight, Info,
 } from 'lucide-react';
-import { createSessionFromHRFlow } from '../api';
+import { fetchHRFlowProfile, createSession } from '../api';
 import type { SessionData } from '../types';
 
 interface LandingPageProps {
@@ -18,7 +18,7 @@ interface FormState {
 }
 
 const INITIAL_FORM: FormState = {
-  source_key: '',
+  source_key: import.meta.env.VITE_HRFLOW_SOURCE_KEY || '',
   profile_key: '',
   reference: '',
   user_email: '',
@@ -27,6 +27,7 @@ const INITIAL_FORM: FormState = {
 export default function LandingPage({ onSessionCreated }: LandingPageProps) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -47,12 +48,15 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
       setLoading(true);
       setError(null);
       try {
-        const data = await createSessionFromHRFlow({
+        setLoadingStep('Fetching profile from HRFlow…');
+        const profile = await fetchHRFlowProfile({
           source_key: form.source_key.trim(),
           profile_key: form.profile_key.trim() || undefined,
           reference: form.reference.trim() || undefined,
           user_email: form.user_email.trim() || undefined,
         });
+        setLoadingStep('Creating interview session…');
+        const data = await createSession(profile);
         onSessionCreated(data);
       } catch (err) {
         setError(
@@ -60,6 +64,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
         );
       } finally {
         setLoading(false);
+        setLoadingStep('');
       }
     },
     [form, canSubmit, onSessionCreated],
@@ -251,7 +256,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Fetching profile…
+                  {loadingStep || 'Loading…'}
                 </>
               ) : (
                 <>
@@ -262,8 +267,8 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
             </button>
 
             <p className="text-slate-600 text-xs text-center">
-              The profile is retrieved from HRFlow in real time.
-              Your <code>HRFLOW_API_KEY</code> must be set in the backend.
+              The profile is fetched directly from HRFlow in real time.
+              Set <code>VITE_HRFLOW_API_KEY</code> in <code>frontend/.env</code>.
             </p>
           </form>
 

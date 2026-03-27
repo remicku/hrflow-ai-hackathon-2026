@@ -1,6 +1,7 @@
 import type { SessionData, StartResponse, AnswerResponse, Report } from './types';
 
 const BASE = '/api';
+const HRFLOW_BASE = '/hrflow-api';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -15,25 +16,42 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json();
 }
 
+export async function fetchHRFlowProfile(params: {
+  source_key: string;
+  profile_key?: string;
+  reference?: string;
+  api_key?: string;
+  user_email?: string;
+}): Promise<Record<string, unknown>> {
+  const apiKey = params.api_key || import.meta.env.VITE_HRFLOW_API_KEY || '';
+  const userEmail = params.user_email || import.meta.env.VITE_HRFLOW_USER_EMAIL || '';
+
+  if (!apiKey) throw new Error('HRFlow API key is required.');
+
+  const query = new URLSearchParams({ source_key: params.source_key });
+  if (params.profile_key) query.set('profile_key', params.profile_key);
+  if (params.reference) query.set('reference', params.reference);
+
+  const res = await fetch(`${HRFLOW_BASE}/profile/indexing?${query}`, {
+    headers: {
+      'X-API-KEY': apiKey,
+      ...(userEmail ? { 'X-USER-EMAIL': userEmail } : {}),
+    },
+  });
+
+  const data = await handleResponse<Record<string, unknown>>(res);
+
+  // HRFlow returns the profile directly under `data`
+  const profile = data?.data as Record<string, unknown> | undefined;
+  if (!profile || !profile.key) throw new Error('No profile found for the given identifiers.');
+  return profile;
+}
+
 export async function createSession(profile: Record<string, unknown>): Promise<SessionData> {
   const res = await fetch(`${BASE}/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(profile),
-  });
-  return handleResponse<SessionData>(res);
-}
-
-export async function createSessionFromHRFlow(params: {
-  source_key: string;
-  profile_key?: string;
-  reference?: string;
-  user_email?: string;
-}): Promise<SessionData> {
-  const res = await fetch(`${BASE}/sessions/from-hrflow`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
+    body: JSON.stringify({ profile, job_offer: null }),
   });
   return handleResponse<SessionData>(res);
 }
