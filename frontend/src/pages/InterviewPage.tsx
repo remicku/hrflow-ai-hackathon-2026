@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Mic, MicOff, Send, ChevronRight, AlertCircle, Loader2, Volume2, VolumeX,
+  PhoneOff, User,
 } from 'lucide-react';
 import Avatar from '../components/Avatar';
 import { ScoreBar } from '../components/ScoreBar';
@@ -67,7 +68,6 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
         if (audio) {
           await playAudio(audio);
         } else {
-          // Simulate reading time
           await new Promise((r) => setTimeout(r, 2500));
         }
       } else {
@@ -181,310 +181,331 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
 
   const activeTranscript = (transcript + (interimTranscript ? ' ' + interimTranscript : '')).trim();
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-indigo-600/6 blur-3xl" />
-      </div>
+  const candidateName = sessionData.candidate_brief.candidate_name;
 
-      {/* Top bar */}
-      <header className="relative border-b border-slate-800/50 px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <span className="text-slate-300 font-medium">{sessionData.candidate_brief.candidate_name}</span>
-            <span>·</span>
-            <span>{sessionData.candidate_brief.current_title || 'Candidate'}</span>
-          </div>
-
-          {/* Progress dots */}
-          <div className="flex items-center gap-2">
-            {Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-2 rounded-full transition-all duration-500 ${
-                  i < currentIndex
-                    ? 'w-6 bg-emerald-500'
-                    : i === currentIndex
-                    ? 'w-6 bg-indigo-500 animate-pulse'
-                    : 'w-2 bg-slate-700'
-                }`}
-              />
-            ))}
-          </div>
-
+  // --- Full-screen states ---
+  if (state === 'error') {
+    return (
+      <div className="h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <AlertCircle className="w-12 h-12 text-rose-400" />
+          <p className="text-rose-300 text-center">{error}</p>
           <button
-            onClick={() => setAudioEnabled(!audioEnabled)}
-            className="text-slate-500 hover:text-slate-300 transition-colors"
-            title={audioEnabled ? 'Mute audio' : 'Enable audio'}
+            className="px-6 py-2 bg-rose-600 hover:bg-rose-500 rounded-lg text-sm"
+            onClick={() => window.location.reload()}
           >
-            {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            Restart
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state === 'loading') {
+    return (
+      <div className="h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <Loader2 className="w-12 h-12 text-indigo-400 animate-spin" />
+          <p className="text-slate-400">Connecting to interview...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (state === 'fetching_report') {
+    return (
+      <div className="h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <Loader2 className="w-12 h-12 text-indigo-400 animate-spin" />
+          <p className="text-slate-400">Generating your report...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Evaluated state: score overlay ---
+  if (state === 'evaluated' && evaluation) {
+    return (
+      <div className="h-screen bg-slate-950 text-white flex items-center justify-center px-4 overflow-y-auto">
+        <div className="w-full max-w-lg py-8 animate-scale-in">
+          {/* Score reveal */}
+          <div className="glass-card rounded-2xl p-8 text-center mb-6">
+            <p className="text-slate-400 text-sm mb-4">Answer evaluated</p>
+            <div className="text-6xl font-extrabold mb-2">
+              <span className={`
+                ${evaluation.normalized_score >= 75 ? 'text-emerald-400' :
+                  evaluation.normalized_score >= 60 ? 'text-amber-400' : 'text-rose-400'}
+              `}>
+                {Math.round(evaluation.normalized_score)}
+              </span>
+              <span className="text-slate-600 text-3xl">/100</span>
+            </div>
+            <p className="text-slate-500 text-sm">{evaluation.rationale}</p>
+          </div>
+
+          {/* Subscores */}
+          <div className="glass-card rounded-2xl p-6 space-y-3 mb-6">
+            <ScoreBar label="Relevance" value={evaluation.subscores.relevance} />
+            <ScoreBar label="Specificity" value={evaluation.subscores.specificity} />
+            <ScoreBar label="Consistency" value={evaluation.subscores.consistency_with_profile} />
+            <ScoreBar label="Clarity" value={evaluation.subscores.clarity} />
+            {evaluation.subscores.technical_accuracy !== null && (
+              <ScoreBar label="Technical Accuracy" value={evaluation.subscores.technical_accuracy} />
+            )}
+          </div>
+
+          {/* Strengths & Concerns */}
+          <div className="grid grid-cols-2 gap-4">
+            {evaluation.strengths.length > 0 && (
+              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+                <p className="text-emerald-400 text-xs font-semibold mb-2 uppercase tracking-wider">Strengths</p>
+                <ul className="space-y-1">
+                  {evaluation.strengths.map((s, i) => (
+                    <li key={i} className="text-slate-300 text-xs flex gap-2">
+                      <span className="text-emerald-500 shrink-0">+</span>{s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {evaluation.concerns.length > 0 && (
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
+                <p className="text-amber-400 text-xs font-semibold mb-2 uppercase tracking-wider">To improve</p>
+                <ul className="space-y-1">
+                  {evaluation.concerns.map((c, i) => (
+                    <li key={i} className="text-slate-300 text-xs flex gap-2">
+                      <span className="text-amber-500 shrink-0">!</span>{c}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <p className="text-center text-slate-600 text-sm mt-6 animate-pulse">
+            {currentIndex < TOTAL_QUESTIONS - 1 ? 'Next question in a moment...' : 'Generating final report...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Main interview: Zoom-like layout ---
+  return (
+    <div className="h-screen bg-slate-950 text-white flex flex-col overflow-hidden">
+
+      {/* Top bar - Zoom style */}
+      <header className="relative bg-slate-900/80 border-b border-slate-800/50 px-4 py-2 flex items-center justify-between shrink-0 z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-slate-300 text-sm font-medium">Interview in progress</span>
+          <span className="text-slate-600 text-sm">|</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+            Q{currentIndex + 1}/{TOTAL_QUESTIONS} — {currentQuestion ? (CATEGORY_LABELS[currentQuestion.category] || currentQuestion.category) : ''}
+          </span>
+        </div>
+
+        {/* Progress dots */}
+        <div className="flex items-center gap-2">
+          {Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                i < currentIndex
+                  ? 'w-5 bg-emerald-500'
+                  : i === currentIndex
+                  ? 'w-5 bg-indigo-500 animate-pulse'
+                  : 'w-1.5 bg-slate-700'
+              }`}
+            />
+          ))}
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="relative flex-1 flex flex-col items-center justify-center px-6 py-8 max-w-3xl mx-auto w-full">
+      {/* Video grid */}
+      <div className="flex-1 flex flex-col md:flex-row gap-2 p-2 min-h-0">
 
-        {/* Error state */}
-        {state === 'error' && (
-          <div className="flex flex-col items-center gap-4 animate-fade-in">
-            <AlertCircle className="w-12 h-12 text-rose-400" />
-            <p className="text-rose-300 text-center">{error}</p>
-            <button
-              className="px-6 py-2 bg-rose-600 hover:bg-rose-500 rounded-lg text-sm"
-              onClick={() => window.location.reload()}
-            >
-              Restart
-            </button>
+        {/* Interviewer tile (main / large) */}
+        <div className="flex-1 md:flex-[2] rounded-xl overflow-hidden border border-slate-800 bg-slate-900 flex flex-col min-h-0">
+          {/* Avatar area */}
+          <div className="flex-1 min-h-0">
+            <Avatar state={avatarState} name="InterviewAI" />
           </div>
-        )}
 
-        {/* Loading */}
-        {state === 'loading' && (
-          <div className="flex flex-col items-center gap-4 animate-fade-in">
-            <Loader2 className="w-12 h-12 text-indigo-400 animate-spin" />
-            <p className="text-slate-400">Preparing your interview...</p>
-          </div>
-        )}
-
-        {/* Fetching report */}
-        {state === 'fetching_report' && (
-          <div className="flex flex-col items-center gap-4 animate-fade-in">
-            <Loader2 className="w-12 h-12 text-indigo-400 animate-spin" />
-            <p className="text-slate-400">Generating your report...</p>
-          </div>
-        )}
-
-        {/* Evaluated state */}
-        {state === 'evaluated' && evaluation && (
-          <div className="w-full max-w-lg animate-scale-in">
-            {/* Score reveal */}
-            <div className="glass-card rounded-2xl p-8 text-center mb-6">
-              <p className="text-slate-400 text-sm mb-4">Answer evaluated</p>
-              <div className="text-6xl font-extrabold mb-2">
-                <span className={`
-                  ${evaluation.normalized_score >= 75 ? 'text-emerald-400' :
-                    evaluation.normalized_score >= 60 ? 'text-amber-400' : 'text-rose-400'}
-                `}>
-                  {Math.round(evaluation.normalized_score)}
-                </span>
-                <span className="text-slate-600 text-3xl">/100</span>
-              </div>
-              <p className="text-slate-500 text-sm">{evaluation.rationale}</p>
-            </div>
-
-            {/* Subscores */}
-            <div className="glass-card rounded-2xl p-6 space-y-3 mb-6">
-              <ScoreBar label="Relevance" value={evaluation.subscores.relevance} />
-              <ScoreBar label="Specificity" value={evaluation.subscores.specificity} />
-              <ScoreBar label="Consistency" value={evaluation.subscores.consistency_with_profile} />
-              <ScoreBar label="Clarity" value={evaluation.subscores.clarity} />
-              {evaluation.subscores.technical_accuracy !== null && (
-                <ScoreBar label="Technical Accuracy" value={evaluation.subscores.technical_accuracy} />
-              )}
-            </div>
-
-            {/* Strengths & Concerns */}
-            <div className="grid grid-cols-2 gap-4">
-              {evaluation.strengths.length > 0 && (
-                <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
-                  <p className="text-emerald-400 text-xs font-semibold mb-2 uppercase tracking-wider">Strengths</p>
-                  <ul className="space-y-1">
-                    {evaluation.strengths.map((s, i) => (
-                      <li key={i} className="text-slate-300 text-xs flex gap-2">
-                        <span className="text-emerald-500 shrink-0">+</span>{s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {evaluation.concerns.length > 0 && (
-                <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
-                  <p className="text-amber-400 text-xs font-semibold mb-2 uppercase tracking-wider">To improve</p>
-                  <ul className="space-y-1">
-                    {evaluation.concerns.map((c, i) => (
-                      <li key={i} className="text-slate-300 text-xs flex gap-2">
-                        <span className="text-amber-500 shrink-0">!</span>{c}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            <p className="text-center text-slate-600 text-sm mt-6 animate-pulse">
-              {currentIndex < TOTAL_QUESTIONS - 1 ? 'Next question in a moment...' : 'Generating final report...'}
-            </p>
-          </div>
-        )}
-
-        {/* Active interview state */}
-        {(state === 'speaking' || state === 'ready_to_record' || state === 'listening' || state === 'submitting') && currentQuestion && (
-          <div className="w-full flex flex-col items-center gap-8 animate-fade-in">
-            {/* Question number badge */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">
-                Question {currentIndex + 1} of {TOTAL_QUESTIONS}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                {CATEGORY_LABELS[currentQuestion.category] || currentQuestion.category}
-              </span>
-            </div>
-
-            {/* Avatar */}
-            <Avatar state={avatarState} />
-
-            {/* Question card */}
-            <div className="w-full glass-card rounded-2xl p-6">
-              <p className="text-white text-lg leading-relaxed text-center font-medium">
+          {/* Question subtitle bar */}
+          {currentQuestion && (
+            <div className="bg-slate-900/90 backdrop-blur-sm border-t border-slate-800/50 px-4 py-3 shrink-0">
+              <p className="text-white text-sm md:text-base leading-relaxed text-center">
                 {currentQuestion.question}
               </p>
-
-              {/* Expected signals hint */}
               {state === 'ready_to_record' && currentQuestion.expected_signals.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-slate-700/50">
-                  <p className="text-slate-600 text-xs text-center">
-                    Tip: mention relevant points like{' '}
-                    {currentQuestion.expected_signals.slice(0, 2).map((s, i) => (
-                      <span key={i} className="text-slate-500 italic">
-                        {s}{i < 1 && currentQuestion.expected_signals.length > 1 ? ', ' : ''}
-                      </span>
-                    ))}
-                  </p>
-                </div>
+                <p className="text-slate-600 text-xs text-center mt-1">
+                  Tip: {currentQuestion.expected_signals.slice(0, 2).join(', ')}
+                </p>
               )}
             </div>
+          )}
+        </div>
 
-            {/* Answer area */}
-            {(state === 'ready_to_record' || state === 'listening' || state === 'submitting') && (
-              <div className="w-full space-y-4">
-                {/* Toggle manual input */}
+        {/* Candidate tile (smaller, right side) */}
+        <div className="md:flex-1 flex flex-col rounded-xl overflow-hidden border border-slate-800 bg-slate-900 min-h-[200px] md:min-h-0">
+          {/* Candidate "video" placeholder */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-slate-900 relative min-h-0">
+
+            {/* Show transcript / input area */}
+            {(state === 'ready_to_record' || state === 'listening' || state === 'submitting') ? (
+              <div className="w-full h-full flex flex-col p-3">
                 {!speechSupported && !useManualInput && (
-                  <p className="text-amber-400 text-sm text-center">
-                    Speech recognition not supported in this browser. Use text input below.
+                  <p className="text-amber-400 text-xs text-center mb-2">
+                    Speech recognition not supported. Use text input.
                   </p>
                 )}
 
                 {/* Transcript display */}
-                {!useManualInput && (
-                  <div
-                    className={`w-full min-h-[100px] glass-card rounded-xl p-4 relative transition-all ${
-                      isListening ? 'border-cyan-500/40' : isTranscribing ? 'border-indigo-500/40' : ''
-                    }`}
-                  >
+                {!useManualInput ? (
+                  <div className="flex-1 overflow-y-auto bg-slate-800/50 rounded-lg p-3 relative min-h-[80px]">
                     {isListening && (
-                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5">
                         <span className="recording-dot w-2 h-2 rounded-full bg-rose-500" />
-                        <span className="text-xs text-rose-400">Recording</span>
+                        <span className="text-xs text-rose-400">REC</span>
                       </div>
                     )}
                     {isTranscribing && (
-                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5">
                         <Loader2 className="w-3 h-3 text-indigo-400 animate-spin" />
                         <span className="text-xs text-indigo-400">Transcribing...</span>
                       </div>
                     )}
                     <p className="text-slate-300 text-sm leading-relaxed">
                       {activeTranscript || (
-                        <span className="text-slate-600 italic">
-                          {isListening ? 'Speak now...' : isTranscribing ? 'Processing audio...' : 'Your transcription will appear here'}
+                        <span className="text-slate-600 italic text-xs">
+                          {isListening ? 'Speak now...' : isTranscribing ? 'Processing...' : 'Your answer will appear here'}
                         </span>
                       )}
                     </p>
                   </div>
-                )}
-
-                {/* Manual text input */}
-                {useManualInput && (
+                ) : (
                   <textarea
-                    className="w-full min-h-[100px] bg-slate-900/60 border border-slate-700 rounded-xl p-4 text-slate-200 text-sm resize-none focus:outline-none focus:border-indigo-500 placeholder-slate-600"
-                    placeholder="Type your answer here..."
+                    className="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-slate-200 text-sm resize-none focus:outline-none focus:border-indigo-500 placeholder-slate-600 min-h-[80px]"
+                    placeholder="Type your answer..."
                     value={manualText}
                     onChange={(e) => setManualText(e.target.value)}
                     disabled={state === 'submitting'}
                   />
                 )}
 
-                {/* Toggle input mode */}
                 <button
-                  className="text-xs text-slate-600 hover:text-slate-400 transition-colors block mx-auto"
+                  className="text-xs text-slate-600 hover:text-slate-400 transition-colors mt-2 mx-auto"
                   onClick={() => {
                     setUseManualInput(!useManualInput);
                     if (isListening) stopListening();
                   }}
                 >
-                  {useManualInput ? 'Switch to voice input' : 'Switch to text input'}
+                  {useManualInput ? 'Switch to voice' : 'Switch to text'}
                 </button>
-
-                {/* Controls */}
-                <div className="flex items-center gap-4">
-                  {/* Mic button */}
-                  {!useManualInput && (
-                    <button
-                      onClick={isListening ? handleStopRecording : handleStartRecording}
-                      disabled={state === 'submitting'}
-                      className={`
-                        w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 shrink-0
-                        ${isListening
-                          ? 'bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-500/30 scale-110'
-                          : 'bg-slate-700 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30'
-                        }
-                      `}
-                    >
-                      {isListening ? (
-                        <MicOff className="w-6 h-6 text-white" />
-                      ) : (
-                        <Mic className="w-6 h-6 text-white" />
-                      )}
-                    </button>
-                  )}
-
-                  {/* Submit button */}
-                  <button
-                    onClick={handleSubmit}
-                    disabled={
-                      state === 'submitting' ||
-                      isTranscribing ||
-                      (!useManualInput && !activeTranscript && !isListening) ||
-                      (useManualInput && !manualText.trim())
-                    }
-                    className="flex-1 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 disabled:shadow-none"
-                  >
-                    {state === 'submitting' ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Evaluating...
-                      </>
-                    ) : isTranscribing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Transcribing...
-                      </>
-                    ) : (
-                      <>
-                        Submit Answer
-                        <ChevronRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
+              </div>
+            ) : (
+              /* Idle / speaking state: show candidate placeholder */
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center">
+                  <User className="w-10 h-10 text-slate-600" />
                 </div>
-
-                {/* Send icon for quick submit (when recording) */}
-                {isListening && (
-                  <button
-                    className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 mx-auto transition-colors"
-                    onClick={handleSubmit}
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    Stop & submit
-                  </button>
-                )}
+                <p className="text-slate-600 text-xs">
+                  {state === 'speaking' ? 'Listening to question...' : 'Waiting...'}
+                </p>
               </div>
             )}
+
+            {/* Name tag */}
+            <div className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm px-2 py-0.5 rounded-md">
+              <span className="text-white text-xs font-medium">{candidateName}</span>
+            </div>
           </div>
-        )}
-      </main>
+        </div>
+      </div>
+
+      {/* Bottom toolbar - Zoom style */}
+      <div className="bg-slate-900/90 backdrop-blur-sm border-t border-slate-800/50 px-4 py-3 shrink-0">
+        <div className="max-w-2xl mx-auto flex items-center justify-center gap-3">
+
+          {/* Mic button */}
+          {!useManualInput && (state === 'ready_to_record' || state === 'listening') && (
+            <button
+              onClick={isListening ? handleStopRecording : handleStartRecording}
+              className={`
+                w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200
+                ${isListening
+                  ? 'bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-500/30 scale-105'
+                  : 'bg-slate-700 hover:bg-slate-600'
+                }
+              `}
+              title={isListening ? 'Stop recording' : 'Start recording'}
+            >
+              {isListening ? (
+                <MicOff className="w-5 h-5 text-white" />
+              ) : (
+                <Mic className="w-5 h-5 text-white" />
+              )}
+            </button>
+          )}
+
+          {/* Submit button */}
+          {(state === 'ready_to_record' || state === 'listening' || state === 'submitting') && (
+            <button
+              onClick={handleSubmit}
+              disabled={
+                state === 'submitting' ||
+                isTranscribing ||
+                (!useManualInput && !activeTranscript && !isListening) ||
+                (useManualInput && !manualText.trim())
+              }
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 disabled:shadow-none"
+            >
+              {state === 'submitting' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Evaluating...
+                </>
+              ) : isTranscribing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Transcribing...
+                </>
+              ) : isListening ? (
+                <>
+                  <Send className="w-4 h-4" />
+                  Stop & Submit
+                </>
+              ) : (
+                <>
+                  Submit Answer
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Audio toggle */}
+          <button
+            onClick={() => setAudioEnabled(!audioEnabled)}
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+              audioEnabled ? 'bg-slate-700 hover:bg-slate-600' : 'bg-rose-600 hover:bg-rose-500'
+            }`}
+            title={audioEnabled ? 'Mute audio' : 'Enable audio'}
+          >
+            {audioEnabled ? <Volume2 className="w-5 h-5 text-white" /> : <VolumeX className="w-5 h-5 text-white" />}
+          </button>
+
+          {/* End call (visual only for now) */}
+          <button
+            className="w-12 h-12 rounded-full bg-rose-600/20 hover:bg-rose-600 flex items-center justify-center transition-all group"
+            title="End interview"
+            onClick={() => window.location.reload()}
+          >
+            <PhoneOff className="w-5 h-5 text-rose-400 group-hover:text-white" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

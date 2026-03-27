@@ -1,4 +1,7 @@
-import { BrainCircuit, Mic } from 'lucide-react';
+import { useRef, useEffect } from 'react';
+import Lottie, { LottieRefCurrentProps } from 'lottie-react';
+import greenManAvatar from '../avatars/green_man_avatar.json';
+import { Mic } from 'lucide-react';
 
 type AvatarState = 'idle' | 'speaking' | 'listening' | 'thinking';
 
@@ -7,92 +10,84 @@ interface AvatarProps {
   name?: string;
 }
 
-const BAR_HEIGHTS = [35, 70, 100, 55, 90, 45, 75, 60, 85, 40];
-const BAR_DELAYS = [0, 0.1, 0.2, 0.05, 0.15, 0.25, 0.08, 0.18, 0.03, 0.22];
-
 export default function Avatar({ state, name = 'InterviewAI' }: AvatarProps) {
+  const lottieRef = useRef<LottieRefCurrentProps>(null);
   const isSpeaking = state === 'speaking';
   const isListening = state === 'listening';
   const isThinking = state === 'thinking';
 
+  useEffect(() => {
+    if (!lottieRef.current) return;
+    if (isSpeaking) {
+      lottieRef.current.play();
+    } else {
+      lottieRef.current.pause();
+    }
+  }, [isSpeaking]);
+
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Avatar sphere */}
-      <div className="relative flex items-center justify-center w-48 h-48">
-        {/* Outer animated rings */}
+    <div className="relative w-full h-full flex flex-col">
+      {/* Video feed area */}
+      <div className="flex-1 relative bg-slate-900 flex items-center justify-center overflow-hidden">
+        {/* Lottie avatar */}
+        <div className="w-64 h-64 md:w-80 md:h-80">
+          <Lottie
+            lottieRef={lottieRef}
+            animationData={greenManAvatar}
+            loop
+            autoplay={false}
+            style={{ width: '100%', height: '100%' }}
+          />
+        </div>
+
+        {/* Speaking indicator */}
         {isSpeaking && (
-          <>
-            <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20 animate-ping" style={{ animationDuration: '2s' }} />
-            <div className="absolute inset-[-12px] rounded-full border border-indigo-400/15 animate-ping" style={{ animationDuration: '2.5s', animationDelay: '0.3s' }} />
-            <div className="absolute inset-[-24px] rounded-full border border-indigo-300/10 animate-ping" style={{ animationDuration: '3s', animationDelay: '0.6s' }} />
-          </>
-        )}
-        {isListening && (
-          <>
-            <div className="absolute inset-0 rounded-full border-2 border-cyan-500/30 animate-ping" style={{ animationDuration: '1.5s' }} />
-            <div className="absolute inset-[-12px] rounded-full border border-cyan-400/20 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.2s' }} />
-          </>
-        )}
-
-        {/* Main circle */}
-        <div
-          className={`
-            relative w-40 h-40 rounded-full flex flex-col items-center justify-center gap-2 transition-all duration-500
-            ${isSpeaking ? 'avatar-speaking bg-gradient-to-br from-indigo-600 to-violet-700' : ''}
-            ${isListening ? 'avatar-listening bg-gradient-to-br from-cyan-500 to-teal-600' : ''}
-            ${isThinking ? 'bg-gradient-to-br from-slate-600 to-slate-700 animate-pulse' : ''}
-            ${state === 'idle' ? 'bg-gradient-to-br from-slate-700 to-slate-800' : ''}
-          `}
-        >
-          {/* Icon */}
-          {isListening ? (
-            <Mic className="w-12 h-12 text-white drop-shadow-lg" />
-          ) : (
-            <BrainCircuit className="w-12 h-12 text-white drop-shadow-lg" />
-          )}
-
-          {/* Audio bars when speaking */}
-          {isSpeaking && (
-            <div className="flex items-end gap-[3px] h-6 px-2">
-              {BAR_HEIGHTS.map((h, i) => (
+          <div className="absolute bottom-4 left-4 flex items-center gap-2">
+            <div className="flex items-end gap-[2px] h-4">
+              {[35, 70, 100, 55, 90].map((h, i) => (
                 <div
                   key={i}
                   className="audio-bar"
                   style={{
                     height: `${h}%`,
-                    animationDelay: `${BAR_DELAYS[i]}s`,
+                    animationDelay: `${i * 0.1}s`,
                     animationDuration: `${0.6 + i * 0.05}s`,
                     opacity: 0.85,
                   }}
                 />
               ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Thinking dots */}
-          {isThinking && (
-            <div className="flex gap-1">
+        {/* Listening overlay */}
+        {isListening && (
+          <div className="absolute inset-0 bg-cyan-500/5 pointer-events-none">
+            <div className="absolute bottom-4 left-4">
+              <Mic className="w-5 h-5 text-cyan-400 animate-pulse" />
+            </div>
+          </div>
+        )}
+
+        {/* Thinking overlay */}
+        {isThinking && (
+          <div className="absolute inset-0 bg-slate-800/30 flex items-center justify-center pointer-events-none">
+            <div className="flex gap-1.5">
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-2 h-2 rounded-full bg-white/70 animate-bounce"
+                  className="w-2.5 h-2.5 rounded-full bg-white/70 animate-bounce"
                   style={{ animationDelay: `${i * 0.15}s` }}
                 />
               ))}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
 
-      {/* Label */}
-      <div className="text-center">
-        <p className="text-slate-200 font-semibold text-lg">{name}</p>
-        <p className="text-slate-500 text-sm">
-          {isSpeaking && 'Asking a question...'}
-          {isListening && 'Listening to your answer...'}
-          {isThinking && 'Evaluating your response...'}
-          {state === 'idle' && 'Ready'}
-        </p>
+        {/* Name tag */}
+        <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-md">
+          <span className="text-white text-sm font-medium">{name}</span>
+        </div>
       </div>
     </div>
   );
