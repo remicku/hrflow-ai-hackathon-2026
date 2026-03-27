@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import {
   BrainCircuit, Zap, Shield, BarChart3, AlertCircle, Loader2,
-  KeyRound, Hash, AtSign, ChevronRight, Info,
+  KeyRound, Hash, AtSign, ChevronRight, Info, Briefcase,
 } from 'lucide-react';
-import { fetchHRFlowProfile, createSession } from '../api';
+import { fetchHRFlowProfile, fetchHRFlowJob, createSession } from '../api';
 import type { SessionData } from '../types';
 
 interface LandingPageProps {
@@ -15,6 +15,8 @@ interface FormState {
   profile_key: string;
   reference: string;
   user_email: string;
+  board_key: string;
+  job_key: string;
 }
 
 const INITIAL_FORM: FormState = {
@@ -22,6 +24,8 @@ const INITIAL_FORM: FormState = {
   profile_key: '',
   reference: '',
   user_email: '',
+  board_key: import.meta.env.VITE_HRFLOW_BOARD_KEY || '',
+  job_key: '',
 };
 
 export default function LandingPage({ onSessionCreated }: LandingPageProps) {
@@ -55,8 +59,19 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
           reference: form.reference.trim() || undefined,
           user_email: form.user_email.trim() || undefined,
         });
+
+        let jobOffer: Record<string, unknown> | null = null;
+        if (form.job_key.trim() && form.board_key.trim()) {
+          setLoadingStep('Fetching job offer from HRFlow…');
+          jobOffer = await fetchHRFlowJob({
+            board_key: form.board_key.trim(),
+            job_key: form.job_key.trim(),
+            user_email: form.user_email.trim() || undefined,
+          });
+        }
+
         setLoadingStep('Creating interview session…');
-        const data = await createSession(profile);
+        const data = await createSession(profile, jobOffer);
         onSessionCreated(data);
       } catch (err) {
         setError(
@@ -209,6 +224,43 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
                     className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Job Offer */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-slate-300">
+                Job Offer
+                <span className="ml-2 text-slate-600 font-normal text-xs">(optional — tailors questions to the role)</span>
+              </p>
+
+              <div className="space-y-2">
+                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Board Key</label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="e.g. board_abc123def456"
+                    value={form.board_key}
+                    onChange={set('board_key')}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Job Key</label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="e.g. job_xyz789"
+                    value={form.job_key}
+                    onChange={set('job_key')}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                  />
+                </div>
+                <p className="text-slate-600 text-xs">Both fields are required to fetch the job offer.</p>
               </div>
             </div>
 
