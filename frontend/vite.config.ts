@@ -11,6 +11,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      '/hrflow-api': {
+        target: 'https://api.hrflow.ai/v1',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/hrflow-api/, ''),
+      },
     },
   },
 })
