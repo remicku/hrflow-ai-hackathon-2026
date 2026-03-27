@@ -81,16 +81,55 @@ export async function getReport(sessionId: string): Promise<Report> {
   return handleResponse<Report>(res);
 }
 
-export async function textToSpeech(text: string): Promise<string | null> {
+let cachedVoiceId: string | null = null;
+
+async function getVoiceId(apiKey: string): Promise<string> {
+  const envVoiceId = import.meta.env.VITE_ELEVENLABS_VOICE_ID;
+  if (envVoiceId && envVoiceId !== '21m00Tcm4TlvDq8ikWAM') return envVoiceId;
+  if (cachedVoiceId) return cachedVoiceId;
+
   try {
-    const res = await fetch(`${BASE}/tts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+    const res = await fetch('https://api.elevenlabs.io/v1/voices', {
+      headers: { 'xi-api-key': apiKey },
     });
-    if (!res.ok) return null;
+    if (!res.ok) return '21m00Tcm4TlvDq8ikWAM';
     const data = await res.json();
-    return data.available ? data.audio_base64 : null;
+    const voices: Array<{ voice_id: string }> = data.voices || [];
+    if (voices.length > 0) {
+      cachedVoiceId = voices[0].voice_id;
+      return cachedVoiceId;
+    }
+  } catch {}
+  return '21m00Tcm4TlvDq8ikWAM';
+}
+
+export async function textToSpeech(text: string): Promise<string | null> {
+  const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const voiceId = await getVoiceId(apiKey);
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: 'POST',
+        headers: {
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        }),
+      },
+    );
+    if (!res.ok) return null;
+    const buffer = await res.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
   } catch {
     return null;
   }

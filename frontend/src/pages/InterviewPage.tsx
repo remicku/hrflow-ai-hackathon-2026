@@ -5,7 +5,7 @@ import {
 import Avatar from '../components/Avatar';
 import { ScoreBar } from '../components/ScoreBar';
 import { startInterview, submitAnswer, getReport, textToSpeech, playAudio } from '../api';
-import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { useElevenLabsSTT } from '../hooks/useElevenLabsSTT';
 import type { SessionData, Question, Evaluation, Report } from '../types';
 
 type InterviewState =
@@ -50,11 +50,13 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     transcript,
     interimTranscript,
     isListening,
+    isTranscribing,
     startListening,
     stopListening,
+    stopAndGetTranscript,
     resetTranscript,
     isSupported: speechSupported,
-  } = useSpeechRecognition('fr-FR');
+  } = useElevenLabsSTT('fr');
 
   // Speak a question via TTS then transition to ready_to_record
   const speakQuestion = useCallback(
@@ -115,10 +117,16 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   };
 
   const handleSubmit = useCallback(async () => {
-    const answer = useManualInput ? manualText.trim() : (transcript + interimTranscript).trim();
+    let answer: string;
+    if (useManualInput) {
+      answer = manualText.trim();
+    } else if (isListening) {
+      answer = await stopAndGetTranscript();
+    } else {
+      answer = transcript.trim();
+    }
     if (!answer || !currentQuestion) return;
 
-    if (isListening) stopListening();
     setState('submitting');
 
     try {
@@ -155,10 +163,9 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     useManualInput,
     manualText,
     transcript,
-    interimTranscript,
     currentQuestion,
     isListening,
-    stopListening,
+    stopAndGetTranscript,
     sessionId,
     resetTranscript,
     speakQuestion,
@@ -363,7 +370,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 {!useManualInput && (
                   <div
                     className={`w-full min-h-[100px] glass-card rounded-xl p-4 relative transition-all ${
-                      isListening ? 'border-cyan-500/40' : ''
+                      isListening ? 'border-cyan-500/40' : isTranscribing ? 'border-indigo-500/40' : ''
                     }`}
                   >
                     {isListening && (
@@ -372,14 +379,17 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                         <span className="text-xs text-rose-400">Recording</span>
                       </div>
                     )}
+                    {isTranscribing && (
+                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        <Loader2 className="w-3 h-3 text-indigo-400 animate-spin" />
+                        <span className="text-xs text-indigo-400">Transcribing...</span>
+                      </div>
+                    )}
                     <p className="text-slate-300 text-sm leading-relaxed">
                       {activeTranscript || (
                         <span className="text-slate-600 italic">
-                          {isListening ? 'Speak now...' : 'Your transcription will appear here'}
+                          {isListening ? 'Speak now...' : isTranscribing ? 'Processing audio...' : 'Your transcription will appear here'}
                         </span>
-                      )}
-                      {interimTranscript && (
-                        <span className="text-slate-500 italic"> {interimTranscript}</span>
                       )}
                     </p>
                   </div>
@@ -435,7 +445,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                     onClick={handleSubmit}
                     disabled={
                       state === 'submitting' ||
-                      (!useManualInput && !activeTranscript) ||
+                      isTranscribing ||
+                      (!useManualInput && !activeTranscript && !isListening) ||
                       (useManualInput && !manualText.trim())
                     }
                     className="flex-1 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 disabled:shadow-none"
@@ -444,6 +455,11 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Evaluating...
+                      </>
+                    ) : isTranscribing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Transcribing...
                       </>
                     ) : (
                       <>
