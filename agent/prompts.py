@@ -33,7 +33,7 @@ def build_question_generation_prompt(candidate_brief: dict[str, Any]) -> str:
     """Build a strict JSON prompt for five grounded interview questions."""
     return (
         "Using the candidate brief below, generate exactly 5 concise recruiter-friendly interview questions. "
-        "Keep each question concise and interviewer-ready. "
+        "Keep each question concise and interviewer-ready, ideally one sentence and never more than 2 to 3 lines. "
         "Return valid JSON in the form {\"questions\": [...]} where each question contains: "
         "id, category, question, why_it_matters, expected_signals, scoring_criteria, priority. "
         "Questions must cover intro/synthesis, experience validation, skill validation, situational or technical, "
