@@ -1,0 +1,290 @@
+import { useState, useCallback } from 'react';
+import {
+  BrainCircuit, Zap, Shield, BarChart3, AlertCircle, Loader2,
+  KeyRound, Hash, AtSign, ChevronRight, Info,
+} from 'lucide-react';
+import { createSessionFromHRFlow } from '../api';
+import type { SessionData } from '../types';
+
+interface LandingPageProps {
+  onSessionCreated: (data: SessionData) => void;
+}
+
+interface FormState {
+  source_key: string;
+  profile_key: string;
+  reference: string;
+  user_email: string;
+}
+
+const INITIAL_FORM: FormState = {
+  source_key: '',
+  profile_key: '',
+  reference: '',
+  user_email: '',
+};
+
+export default function LandingPage({ onSessionCreated }: LandingPageProps) {
+  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const set = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    setError(null);
+  };
+
+  const canSubmit =
+    form.source_key.trim() !== '' &&
+    (form.profile_key.trim() !== '' || form.reference.trim() !== '');
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!canSubmit) return;
+
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await createSessionFromHRFlow({
+          source_key: form.source_key.trim(),
+          profile_key: form.profile_key.trim() || undefined,
+          reference: form.reference.trim() || undefined,
+          user_email: form.user_email.trim() || undefined,
+        });
+        onSessionCreated(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch profile. Check your keys and try again.',
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [form, canSubmit, onSessionCreated],
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
+      {/* Background gradient orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-600/10 blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-600/5 blur-3xl" />
+      </div>
+
+      <div className="relative">
+        {/* Header */}
+        <header className="border-b border-slate-800/50 px-8 py-5">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                <BrainCircuit className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="font-bold text-lg text-white">InterviewAI</span>
+                <span className="ml-2 text-xs text-slate-500 font-medium">powered by HRFlow</span>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1.5 rounded-full font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Live
+            </span>
+          </div>
+        </header>
+
+        {/* Hero */}
+        <section className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
+          <div className="inline-flex items-center gap-2 text-xs text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-4 py-2 rounded-full mb-8 font-medium">
+            <Zap className="w-3.5 h-3.5" />
+            HRFlow Hackathon 2025 — AI Interview Platform
+          </div>
+          <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight mb-6">
+            <span className="text-white">Your next hire,</span>
+            <br />
+            <span className="gradient-text">AI-assessed.</span>
+          </h1>
+          <p className="text-slate-400 text-xl max-w-2xl mx-auto leading-relaxed">
+            Enter the candidate's HRFlow profile details. Our AI will retrieve their profile,
+            conduct a structured interview, and generate an automated scorecard.
+          </p>
+
+          {/* Feature pills */}
+          <div className="flex flex-wrap gap-3 justify-center mt-8">
+            {[
+              { icon: <BrainCircuit className="w-4 h-4" />, label: 'Profile-Aware Questions' },
+              { icon: <Zap className="w-4 h-4" />, label: 'Voice Interaction' },
+              { icon: <BarChart3 className="w-4 h-4" />, label: 'Automated Scoring' },
+              { icon: <Shield className="w-4 h-4" />, label: 'HRFlow Powered' },
+            ].map(({ icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-2 text-sm text-slate-300 bg-slate-800/60 border border-slate-700/50 px-4 py-2 rounded-full"
+              >
+                <span className="text-indigo-400">{icon}</span>
+                {label}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        {/* Form */}
+        <section className="max-w-xl mx-auto px-6 pb-24 animate-slide-up">
+          {error && (
+            <div className="mb-5 flex items-start gap-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-xl text-sm">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-8 space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-1">Candidate Profile Lookup</h2>
+              <p className="text-slate-500 text-sm">
+                Provide the HRFlow identifiers to retrieve the candidate's profile.
+              </p>
+            </div>
+
+            {/* Source Key */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-300">
+                Source Key <span className="text-rose-400">*</span>
+              </label>
+              <div className="relative">
+                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="e.g. source_abc123def456"
+                  value={form.source_key}
+                  onChange={set('source_key')}
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                />
+              </div>
+              <p className="text-slate-600 text-xs">The HRFlow source where the profile is indexed.</p>
+            </div>
+
+            {/* Profile Key or Reference */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-slate-300">
+                Profile Identifier <span className="text-rose-400">*</span>
+                <span className="ml-2 text-slate-600 font-normal text-xs">(key or reference — at least one required)</span>
+              </p>
+
+              <div className="space-y-2">
+                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Profile Key</label>
+                <div className="relative">
+                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="e.g. profile_xyz789"
+                    value={form.profile_key}
+                    onChange={set('profile_key')}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-slate-800" />
+                <span className="text-slate-700 text-xs">or</span>
+                <div className="flex-1 h-px bg-slate-800" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Reference</label>
+                <div className="relative">
+                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="e.g. candidate-ref-42"
+                    value={form.reference}
+                    onChange={set('reference')}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Advanced / User Email toggle */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-400 transition-colors"
+              >
+                <Info className="w-3.5 h-3.5" />
+                {showAdvanced ? 'Hide advanced options' : 'Advanced options (user email)'}
+              </button>
+
+              {showAdvanced && (
+                <div className="mt-4 space-y-2 animate-fade-in">
+                  <label className="block text-sm font-medium text-slate-300">
+                    User Email
+                    <span className="ml-2 text-slate-600 font-normal text-xs">(overrides HRFLOW_USER_EMAIL env var)</span>
+                  </label>
+                  <div className="relative">
+                    <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={form.user_email}
+                      onChange={set('user_email')}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                    />
+                  </div>
+                  <p className="text-slate-600 text-xs">
+                    Required by HRFlow as the <code className="text-slate-500">X-USER-EMAIL</code> header.
+                    Leave empty if set in the backend environment.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading || !canSubmit}
+              className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-semibold text-base transition-all duration-200 shadow-xl shadow-indigo-500/20 disabled:shadow-none flex items-center justify-center gap-3 group"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Fetching profile…
+                </>
+              ) : (
+                <>
+                  Fetch & Start Interview
+                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </button>
+
+            <p className="text-slate-600 text-xs text-center">
+              The profile is retrieved from HRFlow in real time.
+              Your <code>HRFLOW_API_KEY</code> must be set in the backend.
+            </p>
+          </form>
+
+          {/* Info cards */}
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            {[
+              { n: '5', label: 'Tailored questions' },
+              { n: 'AI', label: 'Real-time scoring' },
+              { n: '∞', label: 'Scalable interviews' },
+            ].map(({ n, label }) => (
+              <div
+                key={label}
+                className="text-center p-4 bg-slate-900/40 rounded-xl border border-slate-800/50"
+              >
+                <p className="text-2xl font-bold gradient-text">{n}</p>
+                <p className="text-slate-500 text-xs mt-1">{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
