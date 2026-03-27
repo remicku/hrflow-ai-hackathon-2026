@@ -51,8 +51,23 @@ def _extract_top_skills(normalized_profile: dict[str, Any]) -> list[str]:
     return [item for item, _ in sorted(frequency.items(), key=lambda pair: (-pair[1], pair[0]))[:5]]
 
 
-def build_candidate_brief(normalized_profile: dict[str, Any]) -> dict[str, Any]:
-    """Create a compact candidate brief from a normalized profile."""
+def _extract_job_signals(normalized_job_offer: dict[str, Any] | None) -> dict[str, Any]:
+    job = normalized_job_offer or {}
+    top_skills = [str(skill) for skill in job.get("top_skills") or []][:5]
+    requirements = [str(item) for item in job.get("requirements") or []][:5]
+    return {
+        "target_role": job.get("title") or "Unknown Role",
+        "target_company": job.get("company"),
+        "target_skills": top_skills,
+        "key_requirements": requirements,
+        "job_text": job.get("job_text") or job.get("description_text") or "",
+    }
+
+
+def build_candidate_brief(
+    normalized_profile: dict[str, Any], normalized_job_offer: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Create a compact candidate brief from a normalized profile and optional target job."""
     experiences = normalized_profile.get("experiences") or []
     strongest_experiences = sorted(
         experiences,
@@ -66,6 +81,9 @@ def build_candidate_brief(normalized_profile: dict[str, Any]) -> dict[str, Any]:
     years = float(normalized_profile.get("years_of_experience") or 0.0)
     profile_text = normalized_profile.get("profile_text") or normalized_profile.get("name") or "Candidate profile unavailable."
 
+    job_signals = _extract_job_signals(normalized_job_offer)
+    combined_focus = job_signals["target_skills"] or _extract_top_skills(normalized_profile)
+
     return {
         "profile_key": normalized_profile.get("profile_key"),
         "candidate_name": normalized_profile.get("name") or "Unknown Candidate",
@@ -76,6 +94,8 @@ def build_candidate_brief(normalized_profile: dict[str, Any]) -> dict[str, Any]:
         "strongest_experiences": strongest_experiences,
         "certifications": normalized_profile.get("certifications") or [],
         "profile_text": profile_text,
+        "target_job": job_signals,
+        "fit_focus_skills": combined_focus[:5],
     }
 
 
@@ -136,59 +156,65 @@ class InterviewAgent:
         name = candidate_brief.get("candidate_name") or "the candidate"
         title = candidate_brief.get("current_title") or "your recent role"
         top_skills = candidate_brief.get("top_skills") or ["your core skills"]
+        target_job = candidate_brief.get("target_job") or {}
+        target_role = target_job.get("target_role") or "this role"
+        target_company = target_job.get("target_company") or "the hiring team"
+        target_skills = target_job.get("target_skills") or []
+        target_requirements = target_job.get("key_requirements") or []
         strongest_experiences = candidate_brief.get("strongest_experiences") or []
         main_experience = strongest_experiences[0] if strongest_experiences else {}
         secondary_experience = strongest_experiences[1] if len(strongest_experiences) > 1 else {}
-        primary_skill = top_skills[0]
-        secondary_skill = top_skills[1] if len(top_skills) > 1 else primary_skill
+        primary_skill = target_skills[0] if target_skills else top_skills[0]
+        secondary_skill = target_skills[1] if len(target_skills) > 1 else (top_skills[1] if len(top_skills) > 1 else primary_skill)
         company = main_experience.get("company") or "your recent team"
         project = main_experience.get("title") or title
         secondary_context = secondary_experience.get("title") or secondary_experience.get("company") or "another relevant project"
+        target_requirement = target_requirements[0] if target_requirements else f"success in {target_role}"
 
         questions = [
             {
                 "id": "q1",
                 "category": "intro_synthesis",
-                "question": f"Can you walk me through your background and how it led you to {title}?",
-                "why_it_matters": f"This checks whether {name} can summarize their trajectory clearly and connect past work to current positioning.",
-                "expected_signals": ["clear summary", "career progression", "relevant highlights"],
-                "scoring_criteria": ["structured answer", "profile alignment", "concise synthesis"],
+                "question": f"Can you walk me through your background and explain why it makes you a strong fit for the {target_role} role at {target_company}?",
+                "why_it_matters": f"This checks whether {name} can connect their trajectory to the target job instead of only summarizing past roles.",
+                "expected_signals": ["clear summary", "career progression", "job fit", "relevant highlights"],
+                "scoring_criteria": ["structured answer", "profile alignment", "job alignment", "concise synthesis"],
                 "priority": 1,
             },
             {
                 "id": "q2",
                 "category": "experience_validation",
-                "question": f"Tell me about your work on {project} at {company}. What was the scope, and what results did you personally drive?",
-                "why_it_matters": "This validates ownership, impact, and whether the candidate can explain the strongest experience listed in the profile.",
-                "expected_signals": ["specific context", "ownership", "measurable outcomes"],
-                "scoring_criteria": ["specificity", "consistency with profile", "impact evidence"],
+                "question": f"Tell me about your work on {project} at {company}. Which parts of that experience are most relevant to the {target_role} position?",
+                "why_it_matters": "This validates ownership and impact, while also checking whether the candidate can map a real experience to the target role.",
+                "expected_signals": ["specific context", "ownership", "measurable outcomes", "role relevance"],
+                "scoring_criteria": ["specificity", "consistency with profile", "impact evidence", "job relevance"],
                 "priority": 1,
             },
             {
                 "id": "q3",
                 "category": "skill_validation",
-                "question": f"{primary_skill} stands out in your profile. How have you applied {primary_skill} and {secondary_skill} in real projects?",
-                "why_it_matters": "This tests whether the stated core skills are backed by concrete examples and practical understanding.",
-                "expected_signals": ["real-world use", "skill depth", "tradeoff awareness"],
-                "scoring_criteria": ["relevance", "specificity", "technical clarity"],
+                "question": f"The job emphasizes {primary_skill} and {secondary_skill}. How have you used those skills in real projects, and how ready are you to apply them in this role?",
+                "why_it_matters": "This tests whether the candidate's profile evidence actually supports the most important skills for the target job.",
+                "expected_signals": ["real-world use", "skill depth", "tradeoff awareness", "job readiness"],
+                "scoring_criteria": ["relevance", "specificity", "technical clarity", "job alignment"],
                 "priority": 2,
             },
             {
                 "id": "q4",
                 "category": "situational_or_technical",
-                "question": f"Imagine you joined a new team and had to improve or troubleshoot work similar to {secondary_context}. How would you approach it?",
-                "why_it_matters": "This explores problem-solving, prioritization, and how the candidate transfers past experience into a practical scenario.",
-                "expected_signals": ["structured thinking", "technical or situational reasoning", "decision process"],
-                "scoring_criteria": ["clarity", "problem-solving", "applicability"],
+                "question": f"Imagine you joined the {target_role} role and needed to deliver on {target_requirement}. How would you approach it, using lessons from work like {secondary_context}?",
+                "why_it_matters": "This explores how the candidate translates prior experience into a practical scenario drawn from the target role.",
+                "expected_signals": ["structured thinking", "technical or situational reasoning", "decision process", "job applicability"],
+                "scoring_criteria": ["clarity", "problem-solving", "applicability", "job alignment"],
                 "priority": 2,
             },
             {
                 "id": "q5",
                 "category": "projection_motivation",
-                "question": "What kind of role are you looking for next, and how does it build on the strengths in your profile?",
-                "why_it_matters": "This helps assess motivation, self-awareness, and whether the candidate's direction matches the profile narrative.",
-                "expected_signals": ["motivation", "self-awareness", "future fit"],
-                "scoring_criteria": ["relevance", "consistency", "communication"],
+                "question": f"What attracts you to this {target_role} opportunity, and where do you expect to ramp up most quickly versus need support?",
+                "why_it_matters": "This helps assess motivation, self-awareness, and whether the candidate understands their likely fit for the target job.",
+                "expected_signals": ["motivation", "self-awareness", "future fit", "honest gap awareness"],
+                "scoring_criteria": ["relevance", "consistency", "communication", "job motivation"],
                 "priority": 3,
             },
         ]

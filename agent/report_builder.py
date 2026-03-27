@@ -25,6 +25,7 @@ class ReportBuilder:
                 "communication_score": 0.0,
                 "technical_score": 0.0,
                 "profile_consistency_score": 0.0,
+                "job_alignment_score": 0.0,
                 "recommendation": "insufficient_data",
                 "strengths": [],
                 "concerns": ["No interview answers were recorded."],
@@ -34,6 +35,7 @@ class ReportBuilder:
         overall_score = round(mean(item["normalized_score"] for item in evaluations), 1)
         communication_score = round(mean(item["subscores"]["clarity"] for item in evaluations), 1)
         consistency_score = round(mean(item["subscores"]["consistency_with_profile"] for item in evaluations), 1)
+        job_alignment_score = round(mean(item["subscores"]["job_alignment"] for item in evaluations), 1)
         technical_scores = [
             item["subscores"]["technical_accuracy"]
             for item in evaluations
@@ -54,6 +56,7 @@ class ReportBuilder:
             "communication_score": communication_score,
             "technical_score": technical_score,
             "profile_consistency_score": consistency_score,
+            "job_alignment_score": job_alignment_score,
             "recommendation": recommendation,
             "strengths": strengths,
             "concerns": concerns,
@@ -89,9 +92,10 @@ class ReportBuilder:
     ) -> str:
         name = candidate_brief.get("candidate_name") or "The candidate"
         title = candidate_brief.get("current_title") or "their recent role"
+        target_role = (candidate_brief.get("target_job") or {}).get("target_role") or "the target role"
         strengths_text = "; ".join(strengths[:2]) if strengths else "limited evidence collected"
         concerns_text = "; ".join(concerns[:2]) if concerns else "no major concerns surfaced"
         return (
-            f"{name} interviewed from a {title} background and received an overall score of {overall_score}/100. "
+            f"{name} interviewed from a {title} background for {target_role} and received an overall score of {overall_score}/100. "
             f"Recommendation: {recommendation}. Key strengths: {strengths_text}. Key concerns: {concerns_text}."
         )
