@@ -46,6 +46,10 @@ class SessionCreateResponse(BaseModel):
     candidate_brief: dict[str, Any] = Field(
         description="Recruiter-friendly candidate summary derived from the normalized profile and used to generate interview questions."
     )
+    normalized_job_offer: dict[str, Any] | None = Field(
+        default=None,
+        description="Normalized target job payload used to tailor questions and fit evaluation. Null when no job was provided."
+    )
 
 
 class StartInterviewResponse(BaseModel):
@@ -121,6 +125,24 @@ class ProfilePayload(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
+class JobOfferPayload(BaseModel):
+    """Accept arbitrary HRFlow job JSON."""
+
+    model_config = ConfigDict(extra="allow")
+
+
+class SessionCreateRequest(BaseModel):
+    """Session creation payload with profile and optional job offer."""
+
+    profile: ProfilePayload = Field(
+        description="The HRFlow Profile JSON object for the candidate being interviewed."
+    )
+    job_offer: JobOfferPayload | None = Field(
+        default=None,
+        description="Optional HRFlow-style job offer JSON. When provided, questions and scoring are tailored to both the profile and the job.",
+    )
+
+
 class HealthResponse(BaseModel):
     """Healthcheck response payload."""
 
@@ -178,26 +200,36 @@ async def health() -> HealthResponse:
         "What this endpoint does:\n"
         "- validates the incoming profile shape\n"
         "- normalizes profile data into a stable backend structure\n"
-        "- builds a compact candidate brief used for question generation\n"
+        "- normalizes the optional target job offer\n"
+        "- builds a compact candidate brief used for job-aware question generation\n"
         "- returns a `session_id` for the next steps\n\n"
         "This endpoint does not generate interview questions yet. Call `/sessions/{session_id}/start` next."
     ),
     tags=["Sessions"],
 )
-async def create_session(profile_payload: ProfilePayload) -> SessionCreateResponse:
-    """Create an interview session from a HRFlow Profile JSON payload."""
-    raw_profile = profile_payload.model_dump()
+async def create_session(payload: SessionCreateRequest) -> SessionCreateResponse:
+    """Create an interview session from a HRFlow Profile payload and optional job offer."""
+    raw_profile = payload.profile.model_dump()
+    raw_job_offer = payload.job_offer.model_dump() if payload.job_offer is not None else None
     validation = hrflow_client.validate_profile(raw_profile)
     if not validation["normalized_profile"].get("profile_text"):
         raise HTTPException(status_code=400, detail="Profile payload is missing usable interview context.")
 
     normalized_profile = validation["normalized_profile"]
-    candidate_brief = build_candidate_brief(normalized_profile)
-    session = session_store.create_session(raw_profile, normalized_profile, candidate_brief)
+    normalized_job_offer = hrflow_client.normalize_job(raw_job_offer) if raw_job_offer else None
+    candidate_brief = build_candidate_brief(normalized_profile, normalized_job_offer)
+    session = session_store.create_session(
+        raw_profile,
+        raw_job_offer,
+        normalized_profile,
+        normalized_job_offer,
+        candidate_brief,
+    )
     return SessionCreateResponse(
         session_id=session.session_id,
         normalized_profile=session.normalized_profile,
         candidate_brief=session.candidate_brief,
+        normalized_job_offer=session.normalized_job_offer,
     )
 
 

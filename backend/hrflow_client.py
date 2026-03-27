@@ -40,6 +40,15 @@ def _clean_text(value: Any) -> str:
     return str(value).strip()
 
 
+def _unwrap_hrflow_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    nested_data = payload.get("data")
+    if isinstance(nested_data, dict):
+        return nested_data
+    return payload
+
+
 class HRFlowClient:
     """Small HRFlow v1 client focused on profile-oriented MVP needs."""
 
@@ -116,9 +125,107 @@ class HRFlowClient:
             "normalized_profile": normalized,
         }
 
+    def normalize_job(self, job: dict[str, Any]) -> dict[str, Any]:
+        """Extract a compact, stable structure from a raw HRFlow-like job object."""
+        job = _unwrap_hrflow_payload(_safe_dict(job))
+        info = _safe_dict(job.get("info"))
+        summary = _safe_dict(job.get("summary"))
+        metadata = _safe_dict(job.get("metadata"))
+        board = _safe_dict(job.get("board"))
+        location_dict = _safe_dict(job.get("location"))
+        skills = _safe_list(job.get("skills"))
+        sections = _safe_list(job.get("sections"))
+        requirements = _safe_list(job.get("requirements"))
+
+        job_key = (
+            _clean_text(job.get("key"))
+            or _clean_text(job.get("id"))
+            or _clean_text(metadata.get("reference"))
+            or _clean_text(job.get("reference"))
+        )
+        title = (
+            _clean_text(info.get("title"))
+            or _clean_text(job.get("name"))
+            or _clean_text(job.get("title"))
+            or "Unknown Role"
+        )
+        company = (
+            _clean_text(info.get("company"))
+            or _clean_text(job.get("company"))
+            or _clean_text(board.get("name"))
+            or _clean_text(metadata.get("company"))
+        )
+        location = (
+            _clean_text(location_dict.get("text"))
+            or
+            _clean_text(info.get("location"))
+            or _clean_text(job.get("location"))
+            or _clean_text(metadata.get("location"))
+        )
+        employment_type = _clean_text(info.get("contract_type") or job.get("contract_type") or job.get("type"))
+
+        skill_names: list[str] = []
+        for skill in skills:
+            skill_dict = _safe_dict(skill)
+            name_candidate = _clean_text(
+                skill_dict.get("name") or skill_dict.get("label") or skill_dict.get("value") or skill
+            )
+            if name_candidate and name_candidate.lower() not in {item.lower() for item in skill_names}:
+                skill_names.append(name_candidate)
+
+        requirement_texts: list[str] = []
+        for item in requirements + sections:
+            item_dict = _safe_dict(item)
+            text = _clean_text(
+                item_dict.get("text")
+                or item_dict.get("description")
+                or item_dict.get("value")
+                or item_dict.get("summary")
+                or item_dict.get("title")
+                or item
+            )
+            if text and text.lower() not in {entry.lower() for entry in requirement_texts}:
+                requirement_texts.append(text)
+
+        description_text = _clean_text(
+            summary.get("text")
+            or job.get("description")
+            or job.get("content")
+            or job.get("body")
+            or " ".join(
+                _clean_text(_safe_dict(section).get("description") or _safe_dict(section).get("text"))
+                for section in sections
+            )
+        )
+        combined_text = " ".join(
+            part
+            for part in [
+                title,
+                company,
+                location,
+                employment_type,
+                description_text,
+                " ".join(skill_names),
+                " ".join(requirement_texts[:8]),
+            ]
+            if part
+        ).strip()
+
+        return {
+            "job_key": job_key or None,
+            "title": title,
+            "company": company or None,
+            "location": location or None,
+            "employment_type": employment_type or None,
+            "top_skills": skill_names[:10],
+            "requirements": requirement_texts[:10],
+            "description_text": description_text,
+            "job_text": combined_text,
+        }
+
     def normalize_profile(self, profile: dict[str, Any]) -> dict[str, Any]:
         """Extract a compact, stable structure from a raw HRFlow profile object."""
-        profile = _safe_dict(profile)
+        profile = _unwrap_hrflow_payload(_safe_dict(profile))
         info = _safe_dict(profile.get("info"))
         contact = _safe_dict(profile.get("contact"))
         summary = _safe_dict(profile.get("summary"))
