@@ -169,52 +169,55 @@ class InterviewAgent:
         company = main_experience.get("company") or "your recent team"
         project = main_experience.get("title") or title
         secondary_context = secondary_experience.get("title") or secondary_experience.get("company") or "another relevant project"
-        target_requirement = target_requirements[0] if target_requirements else f"success in {target_role}"
+        raw_requirement = target_requirements[0] if target_requirements else ""
+        # Truncate to keep the deterministic question concise
+        target_requirement = (raw_requirement[:120].rsplit(" ", 1)[0] + "…") if len(raw_requirement) > 120 else raw_requirement
+        target_requirement = target_requirement or f"réussir dans le poste de {target_role}"
 
         questions = [
             {
                 "id": "q1",
                 "category": "intro_synthesis",
-                "question": f"Can you walk me through your background and explain why it makes you a strong fit for the {target_role} role at {target_company}?",
-                "why_it_matters": f"This checks whether {name} can connect their trajectory to the target job instead of only summarizing past roles.",
-                "expected_signals": ["clear summary", "career progression", "job fit", "relevant highlights"],
-                "scoring_criteria": ["structured answer", "profile alignment", "job alignment", "concise synthesis"],
+                "question": f"Pouvez-vous me présenter votre parcours et m'expliquer en quoi il fait de vous un bon candidat pour le poste de {target_role} chez {target_company} ?",
+                "why_it_matters": f"Vérifie si {name} sait relier son parcours au poste cible plutôt que de simplement résumer ses expériences passées.",
+                "expected_signals": ["synthèse claire", "progression de carrière", "adéquation au poste", "points forts pertinents"],
+                "scoring_criteria": ["réponse structurée", "alignement profil", "alignement poste", "synthèse concise"],
                 "priority": 1,
             },
             {
                 "id": "q2",
                 "category": "experience_validation",
-                "question": f"Tell me about your work on {project} at {company}. Which parts of that experience are most relevant to the {target_role} position?",
-                "why_it_matters": "This validates ownership and impact, while also checking whether the candidate can map a real experience to the target role.",
-                "expected_signals": ["specific context", "ownership", "measurable outcomes", "role relevance"],
-                "scoring_criteria": ["specificity", "consistency with profile", "impact evidence", "job relevance"],
+                "question": f"Parlez-moi de votre expérience sur {project} chez {company}. Quels aspects de cette expérience sont les plus pertinents pour le poste de {target_role} ?",
+                "why_it_matters": "Valide la prise en charge et l'impact, tout en vérifiant si le candidat sait relier une expérience concrète au poste cible.",
+                "expected_signals": ["contexte précis", "prise en charge", "résultats mesurables", "pertinence pour le poste"],
+                "scoring_criteria": ["spécificité", "cohérence avec le profil", "preuves d'impact", "pertinence pour le poste"],
                 "priority": 1,
             },
             {
                 "id": "q3",
                 "category": "skill_validation",
-                "question": f"The job emphasizes {primary_skill} and {secondary_skill}. How have you used those skills in real projects, and how ready are you to apply them in this role?",
-                "why_it_matters": "This tests whether the candidate's profile evidence actually supports the most important skills for the target job.",
-                "expected_signals": ["real-world use", "skill depth", "tradeoff awareness", "job readiness"],
-                "scoring_criteria": ["relevance", "specificity", "technical clarity", "job alignment"],
+                "question": f"Le poste met l'accent sur {primary_skill} et {secondary_skill}. Comment avez-vous utilisé ces compétences dans des projets concrets, et dans quelle mesure êtes-vous prêt à les appliquer dans ce rôle ?",
+                "why_it_matters": "Teste si les preuves du profil du candidat soutiennent réellement les compétences les plus importantes pour le poste cible.",
+                "expected_signals": ["utilisation concrète", "profondeur de compétence", "conscience des compromis", "préparation au poste"],
+                "scoring_criteria": ["pertinence", "spécificité", "clarté technique", "alignement poste"],
                 "priority": 2,
             },
             {
                 "id": "q4",
                 "category": "situational_or_technical",
-                "question": f"Imagine you joined the {target_role} role and needed to deliver on {target_requirement}. How would you approach it, using lessons from work like {secondary_context}?",
-                "why_it_matters": "This explores how the candidate translates prior experience into a practical scenario drawn from the target role.",
-                "expected_signals": ["structured thinking", "technical or situational reasoning", "decision process", "job applicability"],
-                "scoring_criteria": ["clarity", "problem-solving", "applicability", "job alignment"],
+                "question": f"Imaginez que vous démarrez dans le poste de {target_role} et que vous devez répondre à l'exigence suivante : {target_requirement}. Comment procéderiez-vous, en vous appuyant sur des expériences comme {secondary_context} ?",
+                "why_it_matters": "Explore comment le candidat transpose ses expériences passées dans un scénario pratique lié au poste cible.",
+                "expected_signals": ["raisonnement structuré", "réflexion technique ou situationnelle", "processus de décision", "applicabilité au poste"],
+                "scoring_criteria": ["clarté", "résolution de problèmes", "applicabilité", "alignement poste"],
                 "priority": 2,
             },
             {
                 "id": "q5",
                 "category": "projection_motivation",
-                "question": f"What attracts you to this {target_role} opportunity, and where do you expect to ramp up most quickly versus need support?",
-                "why_it_matters": "This helps assess motivation, self-awareness, and whether the candidate understands their likely fit for the target job.",
-                "expected_signals": ["motivation", "self-awareness", "future fit", "honest gap awareness"],
-                "scoring_criteria": ["relevance", "consistency", "communication", "job motivation"],
+                "question": f"Qu'est-ce qui vous attire dans cette opportunité de {target_role}, et dans quels domaines pensez-vous monter en compétence rapidement versus avoir besoin d'accompagnement ?",
+                "why_it_matters": "Évalue la motivation, la conscience de soi et si le candidat comprend son adéquation probable avec le poste cible.",
+                "expected_signals": ["motivation", "conscience de soi", "projection future", "lucidité sur les lacunes"],
+                "scoring_criteria": ["pertinence", "cohérence", "communication", "motivation pour le poste"],
                 "priority": 3,
             },
         ]
