@@ -368,19 +368,40 @@ async def get_report(
         raise HTTPException(status_code=404, detail="Session not found.")
     report = report_builder.build_report(session.session_id, session.candidate_brief, session.evaluations)
 
+    raw_profile = session.raw_profile if isinstance(session.raw_profile, dict) else {}
     normalized_job_offer = session.normalized_job_offer or {}
     raw_job_offer = session.raw_job_offer or {}
     raw_job_data = raw_job_offer.get("data") if isinstance(raw_job_offer.get("data"), dict) else raw_job_offer
     raw_job_data = raw_job_data if isinstance(raw_job_data, dict) else {}
     raw_job_board = raw_job_data.get("board") if isinstance(raw_job_data.get("board"), dict) else {}
+    raw_profile_source = raw_profile.get("source") if isinstance(raw_profile.get("source"), dict) else {}
+
+    source_key = (
+        raw_profile.get("source_key")
+        or raw_profile_source.get("key")
+        or hrflow_client.source_key
+    )
+    board_key = (
+        raw_job_offer.get("board_key")
+        if isinstance(raw_job_offer.get("board_key"), str)
+        else None
+    ) or normalized_job_offer.get("board_key") or raw_job_data.get("board_key") or raw_job_board.get("key") or hrflow_client.board_key
+
+    profile_reference = raw_profile.get("reference") if isinstance(raw_profile.get("reference"), str) and raw_profile.get("reference") else None
+    raw_job_reference = normalized_job_offer.get("job_reference") or raw_job_data.get("reference")
+    job_reference = (
+        raw_job_reference
+        if isinstance(raw_job_reference, str) and raw_job_reference and raw_job_reference != "00000"
+        else None
+    )
 
     report["hrflow_profile_job_grade"] = await hrflow_client.grade_profile_for_job(
-        source_key=hrflow_client.source_key,
-        board_key=normalized_job_offer.get("board_key") or raw_job_board.get("key") or hrflow_client.board_key,
+        source_key=source_key,
+        board_key=board_key,
         profile_key=session.normalized_profile.get("profile_key"),
         job_key=normalized_job_offer.get("job_key"),
-        profile_reference=session.raw_profile.get("reference") if isinstance(session.raw_profile, dict) else None,
-        job_reference=normalized_job_offer.get("job_reference") or raw_job_data.get("reference"),
+        profile_reference=profile_reference,
+        job_reference=job_reference,
     )
     logger.info(report)
     return report
