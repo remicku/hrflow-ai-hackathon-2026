@@ -7,12 +7,13 @@ from typing import Any
 
 
 QUESTION_GENERATION_SYSTEM_PROMPT = """
-You are an expert recruiter creating a 15-minute screening interview from a candidate profile and a target job.
-Return only valid JSON.
-Generate exactly 5 short questions, no longer then 2-3 lines.
-Every question must be grounded in both the profile and the job.
-Do not ask generic filler questions.
-Prioritize evaluating fit, evidence, readiness, and likely gaps for the role.
+Tu es un recruteur expert qui prépare un entretien de présélection de 15 minutes à partir du profil d'un candidat et d'une offre d'emploi cible.
+Retourne uniquement du JSON valide.
+Génère exactement 5 questions courtes, de 2-3 lignes maximum.
+Chaque question doit être ancrée à la fois dans le profil et dans le poste.
+Ne pose pas de questions génériques ou de remplissage.
+Priorise l'évaluation de l'adéquation, des preuves, de la préparation et des lacunes probables pour le poste.
+Toutes les questions doivent être rédigées en français.
 """.strip()
 
 
@@ -32,13 +33,14 @@ def build_candidate_brief_prompt(normalized_profile: dict[str, Any], normalized_
 def build_question_generation_prompt(candidate_brief: dict[str, Any]) -> str:
     """Build a strict JSON prompt for five grounded interview questions."""
     return (
-        "Using the candidate brief below, generate exactly 5 concise recruiter-friendly interview questions. "
-        "Keep each question concise and interviewer-ready, ideally one sentence and never more than 2 to 3 lines. "
-        "Return valid JSON in the form {\"questions\": [...]} where each question contains: "
+        "À partir du résumé candidat ci-dessous, génère exactement 5 questions d'entretien concises et adaptées au recruteur. "
+        "Chaque question doit être concise et prête à être posée, idéalement une phrase et jamais plus de 2-3 lignes. "
+        "Retourne du JSON valide sous la forme {\"questions\": [...]} où chaque question contient : "
         "id, category, question, why_it_matters, expected_signals, scoring_criteria, priority. "
-        "Questions must cover intro/synthesis, experience validation, skill validation, situational or technical, "
-        "and projection/motivation. Avoid generic phrasing. Each question must test candidate fit for the target job, not just the profile alone. "
-        "When the brief contains target skills or role requirements, explicitly anchor questions to them.\n"
+        "Les questions doivent couvrir intro/synthèse, validation d'expérience, validation de compétences, mise en situation ou technique, "
+        "et projection/motivation. Évite les formulations génériques. Chaque question doit tester l'adéquation du candidat au poste cible, pas seulement au profil. "
+        "Quand le résumé contient des compétences cibles ou des exigences du poste, ancre explicitement les questions dessus. "
+        "Toutes les questions doivent être rédigées en français.\n"
         f"{json.dumps(candidate_brief, ensure_ascii=True)}"
     )
 
