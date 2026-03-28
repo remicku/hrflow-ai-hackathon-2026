@@ -47,6 +47,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   const [useManualInput, setUseManualInput] = useState(false);
   const allQuestionsRef = useRef<Question[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioEnabledRef = useRef(audioEnabled);
+  audioEnabledRef.current = audioEnabled;
 
   const {
     transcript,
@@ -64,22 +66,19 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   const speakQuestion = useCallback(
     async (question: Question) => {
       setState('speaking');
-      if (audioEnabled) {
-        const tts = await textToSpeech(question.question);
-        if (tts) {
-          const { promise, audio } = playAudio(tts);
-          currentAudioRef.current = audio;
-          await promise;
-          currentAudioRef.current = null;
-        } else {
-          await new Promise((r) => setTimeout(r, 2500));
-        }
+      const tts = await textToSpeech(question.question);
+      if (tts) {
+        const { promise, audio } = playAudio(tts);
+        audio.muted = !audioEnabledRef.current;
+        currentAudioRef.current = audio;
+        await promise;
+        currentAudioRef.current = null;
       } else {
-        await new Promise((r) => setTimeout(r, 800));
+        await new Promise((r) => setTimeout(r, 2500));
       }
       setState('ready_to_record');
     },
-    [audioEnabled],
+    [],
   );
 
   // Load first question on mount
@@ -492,11 +491,11 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
           {/* Audio toggle */}
           <button
             onClick={() => {
-              if (audioEnabled && currentAudioRef.current) {
-                currentAudioRef.current.pause();
-                currentAudioRef.current = null;
+              const next = !audioEnabled;
+              setAudioEnabled(next);
+              if (currentAudioRef.current) {
+                currentAudioRef.current.muted = !next;
               }
-              setAudioEnabled(!audioEnabled);
             }}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
               audioEnabled ? 'bg-slate-700 hover:bg-slate-600' : 'bg-rose-600 hover:bg-rose-500'
