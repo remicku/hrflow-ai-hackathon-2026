@@ -203,11 +203,11 @@ class InterviewAgent:
             },
             {
                 "id": "q2",
-                "category": "experience_validation",
-                "question": f"Parlez-moi de votre expérience sur {project} chez {company}. Quels aspects de cette expérience sont les plus pertinents pour le poste de {target_role} ?",
-                "why_it_matters": "Valide la prise en charge et l'impact, tout en vérifiant si le candidat sait relier une expérience concrète au poste cible.",
-                "expected_signals": ["contexte précis", "prise en charge", "résultats mesurables", "pertinence pour le poste"],
-                "scoring_criteria": ["spécificité", "cohérence avec le profil", "preuves d'impact", "pertinence pour le poste"],
+                "category": "language_proficiency",
+                "question": f"This question is in English to assess your language skills. Can you describe your experience working on {project} at {company} and explain which aspects are most relevant to the {target_role} position? Please answer in English.",
+                "why_it_matters": "Tests the candidate's ability to communicate professionally in English while validating a real experience.",
+                "expected_signals": ["English fluency", "clear structure", "relevant experience", "professional vocabulary"],
+                "scoring_criteria": ["English proficiency", "specificity", "consistency with profile", "job relevance"],
                 "priority": 1,
             },
             {
