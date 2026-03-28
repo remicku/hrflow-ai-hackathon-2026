@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 import httpx
 
@@ -143,12 +146,26 @@ class InterviewAgent:
                 response = await client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 response.raise_for_status()
                 data = response.json()
-            content = data["choices"][0]["message"]["content"]
+            content = data["choices"][0]["message"]["content"].strip()
+            # Strip markdown code fences the LLM sometimes wraps around JSON
+            if "```" in content:
+                # Extract content between first ``` and last ```
+                parts = content.split("```")
+                inner = parts[1] if len(parts) >= 3 else parts[-1]
+                # Remove optional language tag (e.g. "json\n")
+                if inner.startswith(("json", "JSON")):
+                    inner = inner.split("\n", 1)[1] if "\n" in inner else inner[4:]
+                content = inner.strip()
             parsed = json.loads(content)
             questions = parsed.get("questions")
+            if isinstance(questions, list):
+                for i, q in enumerate(questions):
+                    if isinstance(q, dict):
+                        q["id"] = f"q{i + 1}"
             if self._valid_question_set(questions):
                 return questions
-        except (httpx.HTTPError, KeyError, ValueError, TypeError):
+        except (httpx.HTTPError, KeyError, ValueError, TypeError) as exc:
+            logger.error("LLM question generation failed: %s", exc)
             return None
         return None
 
