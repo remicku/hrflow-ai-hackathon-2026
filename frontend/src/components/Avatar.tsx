@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import greenManAvatar from '../avatars/green_man_avatar.json';
+import officeBackground from '../avatars/backgrouds/office_background_interview.jpg';
 import { Mic } from 'lucide-react';
 
 type AvatarState = 'idle' | 'speaking' | 'listening' | 'thinking';
@@ -28,15 +29,17 @@ export default function Avatar({ state, name = 'InterviewAI' }: AvatarProps) {
   return (
     <div className="relative w-full h-full flex flex-col">
       {/* Video feed area */}
-      <div className="flex-1 relative bg-slate-900 flex items-center justify-center overflow-hidden">
+      <div className="flex-1 relative bg-slate-900 flex items-end justify-center overflow-hidden">
+        {/* Background */}
+        <img src={officeBackground} alt="" className="absolute inset-0 w-full h-full object-cover" />
         {/* Lottie avatar */}
-        <div className="w-64 h-64 md:w-80 md:h-80">
+        <div className="absolute left-1/2 -translate-x-1/2" style={{ height: '75%', bottom: '40%', left: '0%' }}>
           <Lottie
             lottieRef={lottieRef}
             animationData={greenManAvatar}
             loop
             autoplay={false}
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: '200%', height: '200%' }}
           />
         </div>
 
