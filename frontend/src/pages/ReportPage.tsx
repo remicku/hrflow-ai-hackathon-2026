@@ -58,6 +58,35 @@ const Q_LABELS: Record<string, string> = {
 const SCORE_COLOR = (s: number) =>
   s >= 75 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444';
 
+function extractHrflowGrade(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (!raw || typeof raw !== 'object') return null;
+
+  const record = raw as Record<string, unknown>;
+  const directKeys = ['score', 'grade', 'matching_score', 'overall_score', 'value'];
+  for (const key of directKeys) {
+    const value = record[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+  }
+
+  const data = record.data;
+  if (Array.isArray(data) && data.length > 0) {
+    return extractHrflowGrade(data[0]);
+  }
+  if (data && typeof data === 'object') {
+    return extractHrflowGrade(data);
+  }
+
+  return null;
+}
+
+function normalizeHrflowGrade(raw: unknown): number | null {
+  const value = extractHrflowGrade(raw);
+  if (value === null) return null;
+  if (value >= 0 && value <= 1) return Math.round(value * 1000) / 10;
+  return value;
+}
+
 function handlePrint() {
   window.print();
 }
@@ -65,6 +94,8 @@ function handlePrint() {
 export default function ReportPage({ report, candidateName, onRestart }: ReportPageProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'questions'>('overview');
   const rec = REC_CONFIG[report.recommendation] ?? REC_CONFIG.mixed;
+  const hrflowGrade = normalizeHrflowGrade(report.hrflow_profile_job_grade);
+  const targetRole = report.candidate_summary.target_job?.target_role;
 
   // Radar data (averages of subscores)
   const avgSubscores = (() => {
@@ -79,6 +110,7 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
       { subject: 'Relevance', value: Math.round(sum('relevance')) },
       { subject: 'Specificity', value: Math.round(sum('specificity')) },
       { subject: 'Consistency', value: Math.round(sum('consistency_with_profile')) },
+      { subject: 'Job Fit', value: Math.round(sum('job_alignment')) },
       { subject: 'Clarity', value: Math.round(sum('clarity')) },
       {
         subject: 'Technical',
@@ -143,6 +175,9 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
               <p className="text-slate-400 text-sm mb-1">Interview Report</p>
               <h1 className="text-3xl font-bold text-slate-900 mb-1">{candidateName}</h1>
               <p className="text-slate-500">{report.candidate_summary.current_title || 'Candidate'}</p>
+              {targetRole && (
+                <p className="text-slate-400 text-sm mt-1">Evaluated for: {targetRole}</p>
+              )}
               <div className="flex items-center gap-2 mt-3">
                 <span className="text-xs text-slate-400 capitalize">{report.candidate_summary.seniority}</span>
                 <span className="text-slate-300">·</span>
@@ -158,10 +193,20 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
 
             {/* Score circles */}
             <div className="flex gap-6">
-              <ScoreCircle score={report.overall_score} size={100} label="Overall" />
+              <ScoreCircle score={report.overall_score} size={100} label="Interview" />
+              {hrflowGrade !== null ? (
+                <ScoreCircle score={hrflowGrade} size={100} label="HRFlow Match" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 justify-center">
+                  <div className="w-[100px] h-[100px] rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center px-4 text-center">
+                    <span className="text-xs text-slate-400">HRFlow score unavailable</span>
+                  </div>
+                  <span className="text-slate-500 text-sm">HRFlow Match</span>
+                </div>
+              )}
               <ScoreCircle score={report.communication_score} size={80} label="Communication" />
               <ScoreCircle score={report.technical_score} size={80} label="Technical" />
-              <ScoreCircle score={report.profile_consistency_score} size={80} label="Consistency" />
+              <ScoreCircle score={report.profile_consistency_score} size={80} label="Profile Fit" />
             </div>
 
             {/* Recommendation badge */}
@@ -302,9 +347,13 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
               <h3 className="text-slate-900 font-semibold mb-5">Category Scores</h3>
               <div className="grid sm:grid-cols-2 gap-4">
                 <ScoreBar label="Overall Score" value={report.overall_score} />
+                {hrflowGrade !== null && (
+                  <ScoreBar label="HRFlow Match Score" value={hrflowGrade} />
+                )}
                 <ScoreBar label="Communication" value={report.communication_score} />
                 <ScoreBar label="Technical Aptitude" value={report.technical_score} />
                 <ScoreBar label="Profile Consistency" value={report.profile_consistency_score} />
+                <ScoreBar label="Job Alignment" value={report.job_alignment_score} />
               </div>
             </div>
           </div>
@@ -342,6 +391,7 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
                   <ScoreBar label="Relevance" value={ev.subscores.relevance} />
                   <ScoreBar label="Specificity" value={ev.subscores.specificity} />
                   <ScoreBar label="Consistency" value={ev.subscores.consistency_with_profile} />
+                  <ScoreBar label="Job Alignment" value={ev.subscores.job_alignment} />
                   <ScoreBar label="Clarity" value={ev.subscores.clarity} />
                   {ev.subscores.technical_accuracy !== null && (
                     <ScoreBar label="Technical Accuracy" value={ev.subscores.technical_accuracy} />

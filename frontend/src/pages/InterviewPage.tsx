@@ -251,6 +251,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
             <ScoreBar label="Relevance" value={evaluation.subscores.relevance} />
             <ScoreBar label="Specificity" value={evaluation.subscores.specificity} />
             <ScoreBar label="Consistency" value={evaluation.subscores.consistency_with_profile} />
+            <ScoreBar label="Job Alignment" value={evaluation.subscores.job_alignment} />
             <ScoreBar label="Clarity" value={evaluation.subscores.clarity} />
             {evaluation.subscores.technical_accuracy !== null && (
               <ScoreBar label="Technical Accuracy" value={evaluation.subscores.technical_accuracy} />

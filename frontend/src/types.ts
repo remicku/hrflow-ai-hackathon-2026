@@ -27,12 +27,24 @@ export interface CandidateBrief {
   seniority: 'junior' | 'mid' | 'senior';
   top_skills: string[];
   strongest_experiences: Experience[];
+  target_job?: {
+    target_role?: string;
+    target_company?: string | null;
+    target_skills?: string[];
+    key_requirements?: string[];
+    job_text?: string;
+  };
 }
 
 export interface SessionData {
   session_id: string;
   normalized_profile: NormalizedProfile;
   candidate_brief: CandidateBrief;
+  normalized_job_offer?: {
+    title?: string;
+    company?: string | null;
+    top_skills?: string[];
+  } | null;
 }
 
 export interface Question {
@@ -54,6 +66,7 @@ export interface Subscores {
   relevance: number;
   specificity: number;
   consistency_with_profile: number;
+  job_alignment: number;
   clarity: number;
   technical_accuracy: number | null;
 }
@@ -87,6 +100,8 @@ export interface Report {
   communication_score: number;
   technical_score: number;
   profile_consistency_score: number;
+  job_alignment_score: number;
+  hrflow_profile_job_grade?: unknown;
   recommendation: 'strong_yes' | 'yes' | 'mixed' | 'no';
   strengths: string[];
   concerns: string[];
