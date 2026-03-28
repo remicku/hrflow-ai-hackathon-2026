@@ -53,8 +53,11 @@ class InterviewScorer:
             result = await self._evaluate_with_llm(candidate_brief, question, transcript)
             if result:
                 result["question_id"] = question.get("id")
+                self._enforce_language_check(question, transcript, result)
                 return result
-        return self._evaluate_deterministic(candidate_brief, question, transcript)
+        result = self._evaluate_deterministic(candidate_brief, question, transcript)
+        self._enforce_language_check(question, transcript, result)
+        return result
 
     async def _evaluate_with_llm(
         self,
@@ -92,6 +95,35 @@ class InterviewScorer:
         except (httpx.HTTPError, KeyError, ValueError, TypeError) as exc:
             logger.error("LLM answer evaluation failed: %s", exc)
         return None
+
+    def _enforce_language_check(self, question: dict[str, Any], transcript: str, result: dict[str, Any]) -> None:
+        """For language_proficiency questions, cap the score if the answer is not in English."""
+        logger.warning("Language check: question_id=%s category=%s", question.get("id"), question.get("category"))
+        if question.get("category") != "language_proficiency":
+            return
+        answer = (transcript or "").strip().lower()
+        if not answer:
+            return
+        # Detect French by checking for common French words
+        french_markers = {"je", "le", "la", "les", "de", "du", "des", "un", "une", "est", "et", "en", "que", "qui", "dans", "pour", "avec", "sur", "mon", "mes", "son", "ses", "nous", "vous", "ils", "elle", "ce", "cette", "pas", "aussi", "mais", "donc", "car", "ai", "été", "avoir", "être", "fait", "très"}
+        words = set(re.findall(r"[a-zàâäéèêëïîôùûüÿç]+", answer))
+        french_count = len(words & french_markers)
+        french_ratio = french_count / max(len(words), 1)
+        logger.warning("Language detection: words=%d french_count=%d ratio=%.2f answer=%s", len(words), french_count, french_ratio, answer[:100])
+        if french_ratio > 0.15:
+            result["normalized_score"] = min(result.get("normalized_score", 0), 10)
+            subscores = result.get("subscores") or {}
+            for key in subscores:
+                if isinstance(subscores[key], (int, float)):
+                    subscores[key] = min(subscores[key], 15)
+            penalty = "Le candidat a répondu en français alors que la question exigeait une réponse en anglais."
+            concerns = result.get("concerns") or []
+            if isinstance(concerns, list):
+                concerns.insert(0, penalty)
+            else:
+                concerns = [penalty]
+            result["concerns"] = concerns
+            result["rationale"] = penalty
 
     def _normalize_evaluation(self, result: dict[str, Any]) -> None:
         """Ensure LLM output matches the expected types for the frontend."""
