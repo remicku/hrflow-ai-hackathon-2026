@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 from contextlib import asynccontextmanager
 from typing import Any
+import logging
 
 from fastapi import FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,6 +24,8 @@ except ModuleNotFoundError:  # pragma: no cover - optional convenience import
     def load_dotenv() -> bool:
         return False
 
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -363,7 +366,24 @@ async def get_report(
     session = session_store.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found.")
-    return report_builder.build_report(session.session_id, session.candidate_brief, session.evaluations)
+    report = report_builder.build_report(session.session_id, session.candidate_brief, session.evaluations)
+
+    normalized_job_offer = session.normalized_job_offer or {}
+    raw_job_offer = session.raw_job_offer or {}
+    raw_job_data = raw_job_offer.get("data") if isinstance(raw_job_offer.get("data"), dict) else raw_job_offer
+    raw_job_data = raw_job_data if isinstance(raw_job_data, dict) else {}
+    raw_job_board = raw_job_data.get("board") if isinstance(raw_job_data.get("board"), dict) else {}
+
+    report["hrflow_profile_job_grade"] = await hrflow_client.grade_profile_for_job(
+        source_key=hrflow_client.source_key,
+        board_key=normalized_job_offer.get("board_key") or raw_job_board.get("key") or hrflow_client.board_key,
+        profile_key=session.normalized_profile.get("profile_key"),
+        job_key=normalized_job_offer.get("job_key"),
+        profile_reference=session.raw_profile.get("reference") if isinstance(session.raw_profile, dict) else None,
+        job_reference=normalized_job_offer.get("job_reference") or raw_job_data.get("reference"),
+    )
+    logger.info(report)
+    return report
 
 
 @app.post(
