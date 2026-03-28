@@ -42,6 +42,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   const [currentIndex, setCurrentIndex] = useState(0);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const lastAnswerRes = useRef<{ interview_completed: boolean; next_question: Question | null } | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [manualText, setManualText] = useState('');
   const [useManualInput, setUseManualInput] = useState(false);
@@ -135,29 +136,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     try {
       const res = await submitAnswer(sessionId, currentQuestion.id, answer);
       setEvaluation(res.evaluation);
+      lastAnswerRes.current = { interview_completed: res.interview_completed, next_question: res.next_question };
       setState('evaluated');
-
-      // Auto-advance after 4 seconds
-      setTimeout(async () => {
-        if (res.interview_completed || !res.next_question) {
-          setState('fetching_report');
-          try {
-            const report = await getReport(sessionId);
-            onComplete(report);
-          } catch (e) {
-            setError(e instanceof Error ? e.message : 'Failed to fetch report');
-            setState('error');
-          }
-        } else {
-          const next = res.next_question;
-          setCurrentQuestion(next);
-          setCurrentIndex((i) => i + 1);
-          resetTranscript();
-          setManualText('');
-          setEvaluation(null);
-          await speakQuestion(next);
-        }
-      }, 4000);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit answer');
       setState('error');
@@ -174,6 +154,29 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     speakQuestion,
     onComplete,
   ]);
+
+  const handleNextQuestion = useCallback(async () => {
+    const res = lastAnswerRes.current;
+    if (!res) return;
+    if (res.interview_completed || !res.next_question) {
+      setState('fetching_report');
+      try {
+        const report = await getReport(sessionId);
+        onComplete(report);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to fetch report');
+        setState('error');
+      }
+    } else {
+      const next = res.next_question;
+      setCurrentQuestion(next);
+      setCurrentIndex((i) => i + 1);
+      resetTranscript();
+      setManualText('');
+      setEvaluation(null);
+      await speakQuestion(next);
+    }
+  }, [sessionId, resetTranscript, speakQuestion, onComplete]);
 
   const avatarState = (() => {
     if (state === 'speaking') return 'speaking';
@@ -229,7 +232,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   // --- Evaluated state: score overlay ---
   if (state === 'evaluated' && evaluation) {
     return (
-      <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center px-4 overflow-y-auto">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-start justify-center px-4 overflow-y-auto">
         <div className="w-full max-w-lg py-8 animate-scale-in">
           {/* Score reveal */}
           <div className="glass-card rounded-2xl p-8 text-center mb-6">
@@ -286,9 +289,15 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
             )}
           </div>
 
-          <p className="text-center text-slate-400 text-sm mt-6 animate-pulse">
-            {currentIndex < TOTAL_QUESTIONS - 1 ? 'Next question in a moment...' : 'Generating final report...'}
-          </p>
+          <div className="text-center mt-6">
+            <button
+              onClick={handleNextQuestion}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-2"
+            >
+              {currentIndex < TOTAL_QUESTIONS - 1 ? 'Question suivante' : 'Voir le rapport final'}
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     );
