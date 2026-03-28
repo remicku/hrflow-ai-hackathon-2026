@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
 import httpx
+
+
+logger = logging.getLogger(__name__)
 
 
 class HRFlowError(Exception):
@@ -55,12 +59,14 @@ class HRFlowClient:
     def __init__(
         self,
         api_key: str | None = None,
+        user_email: str | None = None,
         base_url: str | None = None,
         source_key: str | None = None,
         board_key: str | None = None,
         timeout: float = 20.0,
     ) -> None:
         self.api_key = api_key or os.getenv("HRFLOW_API_KEY")
+        self.user_email = user_email or os.getenv("HRFLOW_USER_EMAIL")
         self.base_url = (base_url or os.getenv("HRFLOW_BASE_URL") or "https://api.hrflow.ai/v1").rstrip("/")
         self.source_key = source_key or os.getenv("HRFLOW_SOURCE_KEY")
         self.board_key = board_key or os.getenv("HRFLOW_BOARD_KEY")
@@ -77,16 +83,24 @@ class HRFlowClient:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["X-API-KEY"] = self.api_key
+        if self.user_email:
+            headers["X-USER-EMAIL"] = self.user_email
         return headers
 
-    async def _request(self, method: str, path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        payload: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         if not self.api_key:
             raise HRFlowConfigurationError("HRFLOW_API_KEY is not configured.")
 
         url = f"{self.base_url}/{path.lstrip('/')}"
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.request(method, url, headers=self.headers, json=payload)
+                response = await client.request(method, url, headers=self.headers, json=payload, params=params)
                 response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             detail = exc.response.text.strip()
@@ -213,6 +227,8 @@ class HRFlowClient:
 
         return {
             "job_key": job_key or None,
+            "job_reference": _clean_text(job.get("reference")) or None,
+            "board_key": _clean_text(board.get("key")) or None,
             "title": title,
             "company": company or None,
             "location": location or None,
@@ -344,3 +360,57 @@ class HRFlowClient:
     async def rate_profile(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Rate a profile or profile/job signal payload via HRFlow Signal API."""
         return await self._request("POST", "profile_rating", payload)
+
+    async def grade_profile_for_job(
+        self,
+        source_key: str | None,
+        board_key: str | None,
+        profile_key: str | None = None,
+        job_key: str | None = None,
+        profile_reference: str | None = None,
+        job_reference: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Grade a profile indexed in a source against a job indexed in a board."""
+        resolved_source_key = source_key or self.source_key
+        resolved_board_key = board_key or self.board_key
+        if not resolved_source_key or not resolved_board_key:
+            logger.info(
+                "HRFlow grading skipped: missing source or board key",
+                extra={"source_key": resolved_source_key, "board_key": resolved_board_key},
+            )
+            return None
+        if not self.api_key or not self.user_email:
+            logger.info(
+                "HRFlow grading skipped: missing API credentials",
+                extra={"has_api_key": bool(self.api_key), "has_user_email": bool(self.user_email)},
+            )
+            return None
+        if not (profile_key or profile_reference):
+            logger.info("HRFlow grading skipped: missing profile identifier")
+            return None
+        if not (job_key or job_reference):
+            logger.info("HRFlow grading skipped: missing job identifier")
+            return None
+
+        params: dict[str, Any] = {
+            "algorithm_key": "grader-hrflow-profiles-titan",
+            "source_key": resolved_source_key,
+            "board_key": resolved_board_key,
+        }
+        if profile_key:
+            params["profile_key"] = profile_key
+        if profile_reference:
+            params["profile_reference"] = profile_reference
+        if job_key:
+            params["job_key"] = job_key
+        if job_reference:
+            params["job_reference"] = job_reference
+
+        try:
+            logger.info("HRFlow grading request params: %s", params)
+            response = await self._request("GET", "profile/grading", params=params)
+            logger.info("HRFlow grading response: %s", response)
+            return response
+        except HRFlowError as exc:
+            logger.exception("HRFlow grading failed: %s", exc)
+            return None
