@@ -86,29 +86,29 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden">
       {/* Background gradient orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-600/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-600/5 blur-3xl" />
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-200/40 blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-violet-200/40 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-100/30 blur-3xl" />
       </div>
 
       <div className="relative">
         {/* Header */}
-        <header className="border-b border-slate-800/50 px-8 py-5">
+        <header className="border-b border-slate-200 px-8 py-5">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
                 <BrainCircuit className="w-5 h-5 text-white" />
               </div>
               <div>
-                <span className="font-bold text-lg text-white">InterviewAI</span>
-                <span className="ml-2 text-xs text-slate-500 font-medium">powered by HRFlow</span>
+                <span className="font-bold text-lg text-slate-900">InterviewAI</span>
+                <span className="ml-2 text-xs text-slate-400 font-medium">powered by HRFlow</span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1.5 rounded-full font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live
             </span>
           </div>
@@ -116,16 +116,16 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
 
         {/* Hero */}
         <section className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
-          <div className="inline-flex items-center gap-2 text-xs text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-4 py-2 rounded-full mb-8 font-medium">
+          <div className="inline-flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-full mb-8 font-medium">
             <Zap className="w-3.5 h-3.5" />
             HRFlow Hackathon 2025 — AI Interview Platform
           </div>
           <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight mb-6">
-            <span className="text-white">Your next hire,</span>
+            <span className="text-slate-900">Your next hire,</span>
             <br />
             <span className="gradient-text">AI-assessed.</span>
           </h1>
-          <p className="text-slate-400 text-xl max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-500 text-xl max-w-2xl mx-auto leading-relaxed">
             Enter the candidate's HRFlow profile details. Our AI will retrieve their profile,
             conduct a structured interview, and generate an automated scorecard.
           </p>
@@ -140,9 +140,9 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
             ].map(({ icon, label }) => (
               <span
                 key={label}
-                className="inline-flex items-center gap-2 text-sm text-slate-300 bg-slate-800/60 border border-slate-700/50 px-4 py-2 rounded-full"
+                className="inline-flex items-center gap-2 text-sm text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-full shadow-sm"
               >
-                <span className="text-indigo-400">{icon}</span>
+                <span className="text-indigo-500">{icon}</span>
                 {label}
               </span>
             ))}
@@ -152,7 +152,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
         {/* Form */}
         <section className="max-w-xl mx-auto px-6 pb-24 animate-slide-up">
           {error && (
-            <div className="mb-5 flex items-start gap-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-xl text-sm">
+            <div className="mb-5 flex items-start gap-3 bg-rose-50 border border-rose-200 text-rose-600 px-4 py-3 rounded-xl text-sm">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -160,68 +160,68 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
 
           <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-8 space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-white mb-1">Candidate Profile Lookup</h2>
-              <p className="text-slate-500 text-sm">
+              <h2 className="text-lg font-semibold text-slate-900 mb-1">Candidate Profile Lookup</h2>
+              <p className="text-slate-400 text-sm">
                 Provide the HRFlow identifiers to retrieve the candidate's profile.
               </p>
             </div>
 
             {/* Source Key */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-300">
-                Source Key <span className="text-rose-400">*</span>
+              <label className="block text-sm font-medium text-slate-700">
+                Source Key <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="e.g. source_abc123def456"
                   value={form.source_key}
                   onChange={set('source_key')}
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                 />
               </div>
-              <p className="text-slate-600 text-xs">The HRFlow source where the profile is indexed.</p>
+              <p className="text-slate-400 text-xs">The HRFlow source where the profile is indexed.</p>
             </div>
 
             {/* Profile Key or Reference */}
             <div className="space-y-3">
-              <p className="text-sm font-medium text-slate-300">
-                Profile Identifier <span className="text-rose-400">*</span>
-                <span className="ml-2 text-slate-600 font-normal text-xs">(key or reference — at least one required)</span>
+              <p className="text-sm font-medium text-slate-700">
+                Profile Identifier <span className="text-rose-500">*</span>
+                <span className="ml-2 text-slate-400 font-normal text-xs">(key or reference — at least one required)</span>
               </p>
 
               <div className="space-y-2">
-                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Profile Key</label>
+                <label className="block text-xs text-slate-400 font-medium uppercase tracking-wider">Profile Key</label>
                 <div className="relative">
-                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="e.g. profile_xyz789"
                     value={form.profile_key}
                     onChange={set('profile_key')}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                   />
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-slate-800" />
-                <span className="text-slate-700 text-xs">or</span>
-                <div className="flex-1 h-px bg-slate-800" />
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-slate-400 text-xs">or</span>
+                <div className="flex-1 h-px bg-slate-200" />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Reference</label>
+                <label className="block text-xs text-slate-400 font-medium uppercase tracking-wider">Reference</label>
                 <div className="relative">
-                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="e.g. candidate-ref-42"
                     value={form.reference}
                     onChange={set('reference')}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                   />
                 </div>
               </div>
@@ -229,38 +229,38 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
 
             {/* Job Offer */}
             <div className="space-y-3">
-              <p className="text-sm font-medium text-slate-300">
+              <p className="text-sm font-medium text-slate-700">
                 Job Offer
-                <span className="ml-2 text-slate-600 font-normal text-xs">(optional — tailors questions to the role)</span>
+                <span className="ml-2 text-slate-400 font-normal text-xs">(optional — tailors questions to the role)</span>
               </p>
 
               <div className="space-y-2">
-                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Board Key</label>
+                <label className="block text-xs text-slate-400 font-medium uppercase tracking-wider">Board Key</label>
                 <div className="relative">
-                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="e.g. board_abc123def456"
                     value={form.board_key}
                     onChange={set('board_key')}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs text-slate-500 font-medium uppercase tracking-wider">Job Key</label>
+                <label className="block text-xs text-slate-400 font-medium uppercase tracking-wider">Job Key</label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="e.g. job_xyz789"
                     value={form.job_key}
                     onChange={set('job_key')}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                   />
                 </div>
-                <p className="text-slate-600 text-xs">Both fields are required to fetch the job offer.</p>
+                <p className="text-slate-400 text-xs">Both fields are required to fetch the job offer.</p>
               </div>
             </div>
 
@@ -269,7 +269,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-400 transition-colors"
+                className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <Info className="w-3.5 h-3.5" />
                 {showAdvanced ? 'Hide advanced options' : 'Advanced options (user email)'}
@@ -277,21 +277,21 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
 
               {showAdvanced && (
                 <div className="mt-4 space-y-2 animate-fade-in">
-                  <label className="block text-sm font-medium text-slate-300">
+                  <label className="block text-sm font-medium text-slate-700">
                     User Email
-                    <span className="ml-2 text-slate-600 font-normal text-xs">(overrides HRFLOW_USER_EMAIL env var)</span>
+                    <span className="ml-2 text-slate-400 font-normal text-xs">(overrides HRFLOW_USER_EMAIL env var)</span>
                   </label>
                   <div className="relative">
-                    <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="email"
                       placeholder="your@email.com"
                       value={form.user_email}
                       onChange={set('user_email')}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                     />
                   </div>
-                  <p className="text-slate-600 text-xs">
+                  <p className="text-slate-400 text-xs">
                     Required by HRFlow as the <code className="text-slate-500">X-USER-EMAIL</code> header.
                     Leave empty if set in the backend environment.
                   </p>
@@ -303,7 +303,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
             <button
               type="submit"
               disabled={loading || !canSubmit}
-              className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-semibold text-base transition-all duration-200 shadow-xl shadow-indigo-500/20 disabled:shadow-none flex items-center justify-center gap-3 group"
+              className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white font-semibold text-base transition-all duration-200 shadow-lg shadow-indigo-500/20 disabled:shadow-none flex items-center justify-center gap-3 group"
             >
               {loading ? (
                 <>
@@ -318,7 +318,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
               )}
             </button>
 
-            <p className="text-slate-600 text-xs text-center">
+            <p className="text-slate-400 text-xs text-center">
               The profile is fetched directly from HRFlow in real time.
               Set <code>VITE_HRFLOW_API_KEY</code> in <code>frontend/.env</code>.
             </p>
@@ -333,10 +333,10 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
             ].map(({ n, label }) => (
               <div
                 key={label}
-                className="text-center p-4 bg-slate-900/40 rounded-xl border border-slate-800/50"
+                className="text-center p-4 bg-white/60 rounded-xl border border-slate-200 shadow-sm"
               >
                 <p className="text-2xl font-bold gradient-text">{n}</p>
-                <p className="text-slate-500 text-xs mt-1">{label}</p>
+                <p className="text-slate-400 text-xs mt-1">{label}</p>
               </div>
             ))}
           </div>

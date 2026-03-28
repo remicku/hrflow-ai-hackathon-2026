@@ -18,10 +18,10 @@ export function ScoreBar({ label, value, max = 100, color }: ScoreBarProps) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-sm">
-        <span className="text-slate-300">{label}</span>
-        <span className="text-white font-medium">{Math.round(value)}</span>
+        <span className="text-slate-600">{label}</span>
+        <span className="text-slate-900 font-medium">{Math.round(value)}</span>
       </div>
-      <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full bg-gradient-to-r ${gradClass} transition-all duration-1000`}
           style={{ width: `${pct}%` }}
@@ -54,7 +54,7 @@ export function ScoreCircle({ score, size = 120, label }: ScoreCircleProps) {
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#1e293b"
+            stroke="#e2e8f0"
             strokeWidth={8}
           />
           <circle
@@ -71,10 +71,10 @@ export function ScoreCircle({ score, size = 120, label }: ScoreCircleProps) {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold text-white">{Math.round(score)}</span>
+          <span className="text-2xl font-bold text-slate-900">{Math.round(score)}</span>
         </div>
       </div>
-      {label && <span className="text-slate-400 text-sm">{label}</span>}
+      {label && <span className="text-slate-500 text-sm">{label}</span>}
     </div>
   );
 }
