@@ -324,7 +324,7 @@ async def submit_answer(
     if any(answer.get("question_id") == payload.question_id for answer in session.answers):
         raise HTTPException(status_code=409, detail="Question already answered.")
 
-    evaluation = scorer.evaluate_answer(session.candidate_brief, question, payload.transcript)
+    evaluation = await scorer.evaluate_answer(session.candidate_brief, question, payload.transcript)
     answer_record = payload.model_dump()
     answered_count = len(session.answers) + 1
     completed = answered_count >= len(session.generated_questions)
