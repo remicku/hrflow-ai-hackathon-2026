@@ -29,7 +29,7 @@ export default function Avatar({ state, name = 'InterviewAI' }: AvatarProps) {
   return (
     <div className="relative w-full h-full flex flex-col">
       {/* Video feed area */}
-      <div className="flex-1 relative bg-slate-900 flex items-end justify-center overflow-hidden">
+      <div className="flex-1 relative bg-slate-100 flex items-end justify-center overflow-hidden">
         {/* Background */}
         <img src={officeBackground} alt="" className="absolute inset-0 w-full h-full object-cover" />
         {/* Lottie avatar */}
@@ -67,19 +67,19 @@ export default function Avatar({ state, name = 'InterviewAI' }: AvatarProps) {
         {isListening && (
           <div className="absolute inset-0 bg-cyan-500/5 pointer-events-none">
             <div className="absolute bottom-4 left-4">
-              <Mic className="w-5 h-5 text-cyan-400 animate-pulse" />
+              <Mic className="w-5 h-5 text-cyan-500 animate-pulse" />
             </div>
           </div>
         )}
 
         {/* Thinking overlay */}
         {isThinking && (
-          <div className="absolute inset-0 bg-slate-800/30 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 bg-white/30 flex items-center justify-center pointer-events-none">
             <div className="flex gap-1.5">
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-2.5 h-2.5 rounded-full bg-white/70 animate-bounce"
+                  className="w-2.5 h-2.5 rounded-full bg-slate-500 animate-bounce"
                   style={{ animationDelay: `${i * 0.15}s` }}
                 />
               ))}
@@ -88,8 +88,8 @@ export default function Avatar({ state, name = 'InterviewAI' }: AvatarProps) {
         )}
 
         {/* Name tag */}
-        <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-md">
-          <span className="text-white text-sm font-medium">{name}</span>
+        <div className="absolute bottom-3 left-3 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-md shadow-sm">
+          <span className="text-slate-700 text-sm font-medium">{name}</span>
         </div>
       </div>
     </div>

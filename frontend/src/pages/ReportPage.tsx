@@ -99,11 +99,11 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
   }));
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden print:bg-white print:text-black">
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden print:bg-white print:text-black">
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden print:hidden">
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full bg-indigo-600/6 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-violet-600/6 blur-3xl" />
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full bg-indigo-200/30 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-violet-200/30 blur-3xl" />
       </div>
 
       <div className="relative max-w-5xl mx-auto px-6 py-12">
@@ -113,21 +113,21 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
               <BrainCircuit className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-white">InterviewAI</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-slate-400 text-sm">Interview Report</span>
+            <span className="font-bold text-slate-900">InterviewAI</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-slate-500 text-sm">Interview Report</span>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 text-slate-400 hover:border-slate-600 hover:text-white text-sm transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 text-sm transition-all"
             >
               <Download className="w-4 h-4" />
               Export PDF
             </button>
             <button
               onClick={onRestart}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm transition-all"
             >
               <RotateCcw className="w-4 h-4" />
               New Interview
@@ -140,17 +140,17 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
             {/* Candidate info */}
             <div className="flex-1">
-              <p className="text-slate-500 text-sm mb-1">Interview Report</p>
-              <h1 className="text-3xl font-bold text-white mb-1">{candidateName}</h1>
-              <p className="text-slate-400">{report.candidate_summary.current_title || 'Candidate'}</p>
+              <p className="text-slate-400 text-sm mb-1">Interview Report</p>
+              <h1 className="text-3xl font-bold text-slate-900 mb-1">{candidateName}</h1>
+              <p className="text-slate-500">{report.candidate_summary.current_title || 'Candidate'}</p>
               <div className="flex items-center gap-2 mt-3">
-                <span className="text-xs text-slate-500 capitalize">{report.candidate_summary.seniority}</span>
-                <span className="text-slate-700">·</span>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400 capitalize">{report.candidate_summary.seniority}</span>
+                <span className="text-slate-300">·</span>
+                <span className="text-xs text-slate-400">
                   {Math.round(report.candidate_summary.years_of_experience)} yrs exp
                 </span>
-                <span className="text-slate-700">·</span>
-                <span className="text-xs text-slate-500">
+                <span className="text-slate-300">·</span>
+                <span className="text-xs text-slate-400">
                   {report.per_question_evaluations.length} questions answered
                 </span>
               </div>
@@ -174,8 +174,8 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
           </div>
 
           {/* Summary */}
-          <div className="mt-6 pt-6 border-t border-slate-700/50">
-            <p className="text-slate-400 text-sm leading-relaxed">{report.final_summary}</p>
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <p className="text-slate-500 text-sm leading-relaxed">{report.final_summary}</p>
           </div>
         </div>
 
@@ -188,7 +188,7 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all capitalize ${
                 activeTab === tab
                   ? 'bg-indigo-600 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
               {tab === 'overview' ? 'Overview' : 'Q&A Breakdown'}
@@ -202,28 +202,28 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
             <div className="grid lg:grid-cols-2 gap-6">
               {/* Radar chart */}
               <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-white font-semibold mb-6 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-indigo-400" />
+                <h3 className="text-slate-900 font-semibold mb-6 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-indigo-500" />
                   Skill Dimension Scores
                 </h3>
                 <ResponsiveContainer width="100%" height={280}>
                   <RadarChart data={avgSubscores} cx="50%" cy="50%" outerRadius="80%">
-                    <PolarGrid stroke="#334155" />
+                    <PolarGrid stroke="#e2e8f0" />
                     <PolarAngleAxis
                       dataKey="subject"
-                      tick={{ fill: '#94a3b8', fontSize: 12 }}
+                      tick={{ fill: '#64748b', fontSize: 12 }}
                     />
                     <PolarRadiusAxis
                       angle={90}
                       domain={[0, 100]}
-                      tick={{ fill: '#64748b', fontSize: 10 }}
+                      tick={{ fill: '#94a3b8', fontSize: 10 }}
                     />
                     <Radar
                       name="Score"
                       dataKey="value"
                       stroke="#6366f1"
                       fill="#6366f1"
-                      fillOpacity={0.25}
+                      fillOpacity={0.15}
                       strokeWidth={2}
                     />
                   </RadarChart>
@@ -232,18 +232,19 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
 
               {/* Bar chart */}
               <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-white font-semibold mb-6">Per-Question Scores</h3>
+                <h3 className="text-slate-900 font-semibold mb-6">Per-Question Scores</h3>
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={barData} barSize={32}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} />
+                    <YAxis domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#1e293b',
-                        border: '1px solid #334155',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
                         borderRadius: '8px',
-                        color: '#f1f5f9',
+                        color: '#1e293b',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       }}
                     />
                     <Bar dataKey="score" radius={[4, 4, 0, 0]}>
@@ -259,16 +260,16 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
             {/* Strengths & Concerns */}
             <div className="grid lg:grid-cols-2 gap-6">
               <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-slate-900 font-semibold mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   Key Strengths
                 </h3>
                 {report.strengths.length === 0 ? (
-                  <p className="text-slate-500 text-sm">No strengths identified.</p>
+                  <p className="text-slate-400 text-sm">No strengths identified.</p>
                 ) : (
                   <ul className="space-y-3">
                     {report.strengths.map((s, i) => (
-                      <li key={i} className="flex gap-3 text-sm text-slate-300">
+                      <li key={i} className="flex gap-3 text-sm text-slate-600">
                         <span className="text-emerald-500 font-bold shrink-0">✓</span>
                         {s}
                       </li>
@@ -277,16 +278,16 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
                 )}
               </div>
               <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                  <XCircle className="w-4 h-4 text-rose-400" />
+                <h3 className="text-slate-900 font-semibold mb-4 flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-rose-500" />
                   Areas of Concern
                 </h3>
                 {report.concerns.length === 0 ? (
-                  <p className="text-slate-500 text-sm">No major concerns identified.</p>
+                  <p className="text-slate-400 text-sm">No major concerns identified.</p>
                 ) : (
                   <ul className="space-y-3">
                     {report.concerns.map((c, i) => (
-                      <li key={i} className="flex gap-3 text-sm text-slate-300">
+                      <li key={i} className="flex gap-3 text-sm text-slate-600">
                         <span className="text-amber-500 font-bold shrink-0">!</span>
                         {c}
                       </li>
@@ -298,7 +299,7 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
 
             {/* Category scores */}
             <div className="glass-card rounded-2xl p-6">
-              <h3 className="text-white font-semibold mb-5">Category Scores</h3>
+              <h3 className="text-slate-900 font-semibold mb-5">Category Scores</h3>
               <div className="grid sm:grid-cols-2 gap-4">
                 <ScoreBar label="Overall Score" value={report.overall_score} />
                 <ScoreBar label="Communication" value={report.communication_score} />
@@ -316,10 +317,10 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
               <div key={ev.question_id} className="glass-card rounded-2xl p-6">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-sm font-bold text-indigo-400 shrink-0">
+                    <span className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-sm font-bold text-indigo-600 shrink-0">
                       {idx + 1}
                     </span>
-                    <span className="text-xs text-slate-500 uppercase tracking-wider">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">
                       {Q_LABELS[ev.question_id] || ev.question_id}
                     </span>
                   </div>
@@ -330,11 +331,11 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
                     >
                       {Math.round(ev.normalized_score)}
                     </span>
-                    <span className="text-slate-600 text-sm">/100</span>
+                    <span className="text-slate-400 text-sm">/100</span>
                   </div>
                 </div>
 
-                <p className="text-slate-400 text-sm mb-4 italic">{ev.rationale}</p>
+                <p className="text-slate-500 text-sm mb-4 italic">{ev.rationale}</p>
 
                 {/* Subscores */}
                 <div className="grid sm:grid-cols-2 gap-3 mb-4">
@@ -349,13 +350,13 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
 
                 {/* Strengths & Concerns */}
                 {(ev.strengths.length > 0 || ev.concerns.length > 0) && (
-                  <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-700/50">
+                  <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-200">
                     {ev.strengths.length > 0 && (
                       <div className="flex-1">
-                        <p className="text-emerald-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Strengths</p>
+                        <p className="text-emerald-600 text-xs font-semibold mb-1.5 uppercase tracking-wider">Strengths</p>
                         <ul className="space-y-1">
                           {ev.strengths.map((s, i) => (
-                            <li key={i} className="text-slate-400 text-xs flex gap-2">
+                            <li key={i} className="text-slate-500 text-xs flex gap-2">
                               <span className="text-emerald-500">+</span>{s}
                             </li>
                           ))}
@@ -364,10 +365,10 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
                     )}
                     {ev.concerns.length > 0 && (
                       <div className="flex-1">
-                        <p className="text-amber-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Concerns</p>
+                        <p className="text-amber-600 text-xs font-semibold mb-1.5 uppercase tracking-wider">Concerns</p>
                         <ul className="space-y-1">
                           {ev.concerns.map((c, i) => (
-                            <li key={i} className="text-slate-400 text-xs flex gap-2">
+                            <li key={i} className="text-slate-500 text-xs flex gap-2">
                               <span className="text-amber-500">!</span>{c}
                             </li>
                           ))}
