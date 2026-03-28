@@ -188,7 +188,7 @@ class HRFlowClient:
                 skill_names.append(name_candidate)
 
         requirement_texts: list[str] = []
-        for item in requirements + sections:
+        for item in requirements:
             item_dict = _safe_dict(item)
             text = _clean_text(
                 item_dict.get("text")
