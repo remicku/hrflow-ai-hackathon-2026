@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   BrainCircuit, Zap, Shield, BarChart3, AlertCircle, Loader2,
   KeyRound, Hash, AtSign, ChevronRight, Info, Briefcase,
@@ -19,21 +19,34 @@ interface FormState {
   job_key: string;
 }
 
-const INITIAL_FORM: FormState = {
-  source_key: import.meta.env.VITE_HRFLOW_SOURCE_KEY || '',
-  profile_key: '',
-  reference: '',
-  user_email: '',
-  board_key: import.meta.env.VITE_HRFLOW_BOARD_KEY || '',
-  job_key: '',
-};
+function getInitialForm(): FormState {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    source_key: params.get('source_key') ?? import.meta.env.VITE_HRFLOW_SOURCE_KEY ?? '',
+    profile_key: params.get('profile_key') ?? '',
+    reference: params.get('reference') ?? '',
+    user_email: params.get('user_email') ?? '',
+    board_key: params.get('board_key') ?? import.meta.env.VITE_HRFLOW_BOARD_KEY ?? '',
+    job_key: params.get('job_key') ?? '',
+  };
+}
 
 export default function LandingPage({ onSessionCreated }: LandingPageProps) {
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [form, setForm] = useState<FormState>(getInitialForm);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    (Object.entries(form) as [keyof FormState, string][]).forEach(([key, value]) => {
+      if (value.trim()) params.set(key, value.trim());
+    });
+    const search = params.toString();
+    const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, [form]);
 
   const set = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
