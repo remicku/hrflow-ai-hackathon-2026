@@ -115,12 +115,9 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
                 <BrainCircuit className="w-5 h-5 text-white" />
               </div>
-              <div className="flex flex-col">
-                <div>
-                  <span className="font-bold text-lg text-slate-900">InterviewAI</span>
-                  <span className="ml-2 text-xs text-slate-400 font-medium">powered by HRFlow</span>
-                </div>
-                <span className="text-xs text-slate-400">by 404-job-not-found</span>
+              <div>
+                <span className="font-bold text-lg text-slate-900">InterviewAI</span>
+                <span className="ml-2 text-xs text-slate-400 font-medium">powered by HRFlow</span>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full font-medium">
@@ -356,6 +353,13 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
             ))}
           </div>
         </section>
+
+        {/* Footer */}
+        <footer className="border-t border-slate-200 py-6 text-center">
+          <p className="text-sm text-slate-400">
+            Built by <span className="font-semibold text-slate-600">404-job-not-found</span> — HRFlow Hackathon 2026
+          </p>
+        </footer>
       </div>
     </div>
   );
