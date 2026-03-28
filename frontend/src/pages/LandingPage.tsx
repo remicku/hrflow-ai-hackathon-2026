@@ -115,9 +115,12 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
                 <BrainCircuit className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <span className="font-bold text-lg text-slate-900">InterviewAI</span>
-                <span className="ml-2 text-xs text-slate-400 font-medium">powered by HRFlow</span>
+              <div className="flex flex-col">
+                <div>
+                  <span className="font-bold text-lg text-slate-900">InterviewAI</span>
+                  <span className="ml-2 text-xs text-slate-400 font-medium">powered by HRFlow</span>
+                </div>
+                <span className="text-xs text-slate-400">by 404-job-not-found</span>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full font-medium">
@@ -131,7 +134,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
         <section className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
           <div className="inline-flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-full mb-8 font-medium">
             <Zap className="w-3.5 h-3.5" />
-            HRFlow Hackathon 2025 — AI Interview Platform
+            HRFlow Hackathon 2026 — AI Interview Platform
           </div>
           <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight mb-6">
             <span className="text-slate-900">Your next hire,</span>
@@ -333,7 +336,6 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
 
             <p className="text-slate-400 text-xs text-center">
               The profile is fetched directly from HRFlow in real time.
-              Set <code>VITE_HRFLOW_API_KEY</code> in <code>frontend/.env</code>.
             </p>
           </form>
 
