@@ -45,16 +45,34 @@ def build_question_generation_prompt(candidate_brief: dict[str, Any]) -> str:
     )
 
 
+ANSWER_EVALUATION_SYSTEM_PROMPT = """
+Tu es un recruteur expert qui évalue les réponses d'un candidat lors d'un entretien de présélection.
+Tu dois évaluer chaque réponse de manière stricte et réaliste.
+
+Règles de scoring (normalized_score sur 100) :
+- 0-15 : réponse vide, hors-sujet, ou factice (ex: "test", "je ne sais pas", quelques mots sans contenu)
+- 16-35 : réponse très vague, générique, sans aucun exemple concret ni lien avec le poste
+- 36-55 : réponse passable, quelques éléments pertinents mais manque de profondeur ou d'exemples
+- 56-75 : bonne réponse, exemples concrets, lien clair avec le poste et le profil
+- 76-90 : très bonne réponse, détaillée, structurée, avec impact mesurable et forte adéquation au poste
+- 91-100 : réponse exceptionnelle, réservé aux réponses quasi parfaites
+
+Retourne uniquement du JSON valide avec les clés : normalized_score, subscores, strengths, concerns, rationale.
+Les subscores doivent inclure : relevance, specificity, consistency_with_profile, job_alignment, clarity, et technical_accuracy (si applicable, sinon null).
+Chaque subscore est sur 100 et suit la même logique de sévérité.
+Les strengths, concerns et rationale doivent être rédigés en français.
+""".strip()
+
+
 def build_answer_evaluation_prompt(candidate_brief: dict[str, Any], question: dict[str, Any], answer: str) -> str:
-    """Build an optional LLM prompt for answer evaluation."""
+    """Build an LLM prompt for answer evaluation."""
     return (
-        "Evaluate this interview answer against the candidate profile, the target job, and the question. "
-        "Return valid JSON with keys: normalized_score, subscores, strengths, concerns, rationale. "
-        "The subscores must include relevance, specificity, consistency_with_profile, job_alignment, clarity, and technical_accuracy when applicable. "
-        "Keep the evaluation grounded in the provided brief and avoid speculation.\n"
-        f"Candidate brief: {json.dumps(candidate_brief, ensure_ascii=True)}\n"
-        f"Question: {json.dumps(question, ensure_ascii=True)}\n"
-        f"Answer: {json.dumps(answer, ensure_ascii=True)}"
+        "Évalue cette réponse d'entretien en la comparant au profil du candidat, au poste cible et à la question posée. "
+        "Sois strict : une réponse courte, vague ou factice doit recevoir un score très bas. "
+        "Retourne uniquement du JSON valide.\n"
+        f"Résumé candidat : {json.dumps(candidate_brief, ensure_ascii=True)}\n"
+        f"Question : {json.dumps(question, ensure_ascii=True)}\n"
+        f"Réponse du candidat : {json.dumps(answer, ensure_ascii=True)}"
     )
 
 
