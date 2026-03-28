@@ -164,11 +164,12 @@ export async function textToSpeech(text: string): Promise<string | null> {
   }
 }
 
-export function playAudio(base64: string): Promise<void> {
-  return new Promise((resolve) => {
-    const audio = new Audio(`data:audio/mpeg;base64,${base64}`);
+export function playAudio(base64: string): { promise: Promise<void>; audio: HTMLAudioElement } {
+  const audio = new Audio(`data:audio/mpeg;base64,${base64}`);
+  const promise = new Promise<void>((resolve) => {
     audio.onended = () => resolve();
     audio.onerror = () => resolve();
     audio.play().catch(() => resolve());
   });
+  return { promise, audio };
 }

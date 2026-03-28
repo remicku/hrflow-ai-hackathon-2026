@@ -46,6 +46,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   const [manualText, setManualText] = useState('');
   const [useManualInput, setUseManualInput] = useState(false);
   const allQuestionsRef = useRef<Question[]>([]);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const {
     transcript,
@@ -64,9 +65,12 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     async (question: Question) => {
       setState('speaking');
       if (audioEnabled) {
-        const audio = await textToSpeech(question.question);
-        if (audio) {
-          await playAudio(audio);
+        const tts = await textToSpeech(question.question);
+        if (tts) {
+          const { promise, audio } = playAudio(tts);
+          currentAudioRef.current = audio;
+          await promise;
+          currentAudioRef.current = null;
         } else {
           await new Promise((r) => setTimeout(r, 2500));
         }
@@ -487,7 +491,13 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
 
           {/* Audio toggle */}
           <button
-            onClick={() => setAudioEnabled(!audioEnabled)}
+            onClick={() => {
+              if (audioEnabled && currentAudioRef.current) {
+                currentAudioRef.current.pause();
+                currentAudioRef.current = null;
+              }
+              setAudioEnabled(!audioEnabled);
+            }}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
               audioEnabled ? 'bg-slate-700 hover:bg-slate-600' : 'bg-rose-600 hover:bg-rose-500'
             }`}
