@@ -4,6 +4,7 @@ import {
   PhoneOff, User,
 } from 'lucide-react';
 import Avatar from '../components/Avatar';
+import Webcam from '../components/Webcam';
 import { ScoreBar } from '../components/ScoreBar';
 import { startInterview, submitAnswer, getReport, textToSpeech, playAudio } from '../api';
 import { useElevenLabsSTT } from '../hooks/useElevenLabsSTT';
@@ -376,12 +377,11 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
           )}
         </div>
 
-        {/* Candidate tile (smaller, right side) */}
-        <div className="md:flex-1 flex flex-col rounded-xl overflow-hidden border border-slate-200 bg-white min-h-[200px] md:min-h-0 shadow-sm">
-          {/* Candidate "video" placeholder */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-white relative min-h-0">
+        {/* Right column: transcript + webcam as separate tiles */}
+        <div className="md:flex-1 flex flex-col gap-2 min-h-[200px] md:min-h-0">
 
-            {/* Show transcript / input area */}
+          {/* Transcript tile */}
+          <div className="flex-1 flex flex-col rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm min-h-0">
             {(state === 'ready_to_record' || state === 'listening' || state === 'submitting') ? (
               <div className="w-full h-full flex flex-col p-3">
                 {!speechSupported && !useManualInput && (
@@ -434,20 +434,19 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 </button>
               </div>
             ) : (
-              /* Idle / speaking state: show candidate placeholder */
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center">
-                  <User className="w-10 h-10 text-slate-400" />
-                </div>
+              <div className="flex-1 flex items-center justify-center">
                 <p className="text-slate-400 text-xs">
                   {state === 'speaking' ? 'Listening to question...' : 'Waiting...'}
                 </p>
               </div>
             )}
+          </div>
 
-            {/* Name tag */}
-            <div className="absolute bottom-2 left-2 bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded-md shadow-sm">
-              <span className="text-slate-700 text-xs font-medium">{candidateName}</span>
+          {/* Webcam tile */}
+          <div className="h-[300px] shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-slate-900 shadow-sm relative">
+            <Webcam />
+            <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-md">
+              <span className="text-white text-xs font-medium">{candidateName}</span>
             </div>
           </div>
         </div>
