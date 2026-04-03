@@ -339,7 +339,7 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
           {/* Info cards */}
           <div className="grid grid-cols-3 gap-4 mt-6">
             {[
-              { n: '5', label: 'Tailored questions' },
+              { n: '3', label: 'Tailored questions' },
               { n: 'AI', label: 'Real-time scoring' },
               { n: '∞', label: 'Scalable interviews' },
             ].map(({ n, label }) => (

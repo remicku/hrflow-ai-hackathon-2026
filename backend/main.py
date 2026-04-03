@@ -59,7 +59,7 @@ class StartInterviewResponse(BaseModel):
     """Response for interview start."""
 
     generated_questions: list[dict[str, Any]] = Field(
-        description="Exactly 5 generated interview questions for the session, in interview order."
+        description="Exactly 3 generated interview questions for the session, in interview order."
     )
     current_question: dict[str, Any] | None = Field(
         description="The first unanswered question. On start, this is the first question in the interview."
@@ -95,10 +95,10 @@ class AnswerResponse(BaseModel):
         description="Per-question evaluation including normalized score, subscores, strengths, concerns, and rationale."
     )
     next_question: dict[str, Any] | None = Field(
-        description="The next unanswered question in the interview flow, or null when all 5 questions are completed."
+        description="The next unanswered question in the interview flow, or null when all 3 questions are completed."
     )
     interview_completed: bool = Field(
-        description="True when the submitted answer completes the 5-question interview."
+        description="True when the submitted answer completes the 3-question interview."
     )
 
 
@@ -165,7 +165,7 @@ app = FastAPI(
         "This API turns a HRFlow Profile JSON object into a short AI interview workflow.\n\n"
         "Typical flow:\n"
         "1. `POST /sessions` with a HRFlow profile payload.\n"
-        "2. `POST /sessions/{session_id}/start` to generate exactly 5 questions.\n"
+        "2. `POST /sessions/{session_id}/start` to generate exactly 3 questions.\n"
         "3. `POST /sessions/{session_id}/answer` once per question.\n"
         "4. `GET /sessions/{session_id}/report` to retrieve the final report.\n\n"
         "External services are optional. If HRFlow, an LLM, or Gradium are not configured, "
@@ -243,7 +243,7 @@ async def create_session(payload: SessionCreateRequest) -> SessionCreateResponse
     description=(
         "Generates the interview questions for an existing session and returns the first current question.\n\n"
         "Behavior:\n"
-        "- generates exactly 5 profile-driven questions on first call\n"
+        "- generates exactly 3 profile-driven questions on first call\n"
         "- reuses the same question set on later calls for the same session\n"
         "- optionally includes base64 TTS audio for the current question when Gradium is configured"
     ),
@@ -264,7 +264,7 @@ async def start_session(
     questions = session.generated_questions
     if not questions:
         questions = await interview_agent.generate_questions(session.candidate_brief)
-        if len(questions) != 5:
+        if len(questions) != 3:
             raise HTTPException(status_code=500, detail="Interview question generation failed.")
         updated = session_store.update_questions(session_id, questions, status="in_progress")
         if not updated:
@@ -299,7 +299,7 @@ async def start_session(
         "What it returns:\n"
         "- the evaluation for that answer\n"
         "- the next unanswered question, if any\n"
-        "- whether the 5-question interview is now complete"
+        "- whether the 3-question interview is now complete"
     ),
     tags=["Sessions"],
 )
