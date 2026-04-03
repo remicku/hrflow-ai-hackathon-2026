@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from agent.interview_agent import InterviewAgent, build_candidate_brief
 from agent.report_builder import ReportBuilder
 from agent.scorer import InterviewScorer
-from backend.elevenlabs import text_to_speech
+from backend.gradium_tts import text_to_speech
 from backend.hrflow_client import HRFlowClient
 from backend.session_store import SessionStore
 
@@ -66,7 +66,7 @@ class StartInterviewResponse(BaseModel):
     )
     audio_base64: str | None = Field(
         default=None,
-        description="Optional base64-encoded audio for the current question when ElevenLabs is configured.",
+        description="Optional base64-encoded audio for the current question when Gradium is configured.",
     )
 
 
@@ -168,7 +168,7 @@ app = FastAPI(
         "2. `POST /sessions/{session_id}/start` to generate exactly 5 questions.\n"
         "3. `POST /sessions/{session_id}/answer` once per question.\n"
         "4. `GET /sessions/{session_id}/report` to retrieve the final report.\n\n"
-        "External services are optional. If HRFlow, an LLM, or ElevenLabs are not configured, "
+        "External services are optional. If HRFlow, an LLM, or Gradium are not configured, "
         "the API falls back to deterministic local behavior when possible."
     ),
     lifespan=lifespan,
@@ -245,7 +245,7 @@ async def create_session(payload: SessionCreateRequest) -> SessionCreateResponse
         "Behavior:\n"
         "- generates exactly 5 profile-driven questions on first call\n"
         "- reuses the same question set on later calls for the same session\n"
-        "- optionally includes base64 TTS audio for the current question when ElevenLabs is configured"
+        "- optionally includes base64 TTS audio for the current question when Gradium is configured"
     ),
     tags=["Sessions"],
 )
@@ -412,14 +412,14 @@ async def get_report(
     response_model=TTSResponse,
     summary="Generate text-to-speech audio",
     description=(
-        "Converts plain text into spoken audio using ElevenLabs when configured.\n\n"
-        "If ElevenLabs credentials are missing or synthesis fails, the endpoint returns a null-safe response "
+        "Converts plain text into spoken audio using Gradium when configured.\n\n"
+        "If Gradium credentials are missing or synthesis fails, the endpoint returns a null-safe response "
         "with `audio_base64 = null` and `available = false` instead of crashing."
     ),
     tags=["Audio"],
 )
 async def tts(payload: TTSRequest) -> TTSResponse:
-    """Generate TTS audio when ElevenLabs is configured."""
+    """Generate TTS audio when Gradium is configured."""
     audio = await text_to_speech(payload.text)
     if not audio:
         return TTSResponse(audio_base64=None, available=False)
