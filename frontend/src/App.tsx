@@ -3,6 +3,7 @@ import LandingPage from './pages/LandingPage';
 import BriefingPage from './pages/BriefingPage';
 import InterviewPage from './pages/InterviewPage';
 import ReportPage from './pages/ReportPage';
+import HRDashboard from './pages/HRDashboard';
 import type { AppPage, SessionData, Report } from './types';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
             setSessionData(data);
             setPage('briefing');
           }}
+          onOpenHR={() => setPage('hr_dashboard')}
         />
       )}
       {page === 'briefing' && sessionData && (
@@ -47,6 +49,9 @@ export default function App() {
           candidateName={sessionData.candidate_brief.candidate_name}
           onRestart={handleRestart}
         />
+      )}
+      {page === 'hr_dashboard' && (
+        <HRDashboard onBack={() => setPage('landing')} />
       )}
     </>
   );

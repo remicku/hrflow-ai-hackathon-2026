@@ -1,4 +1,4 @@
-import type { SessionData, StartResponse, AnswerResponse, Report } from './types';
+import type { SessionData, StartResponse, AnswerResponse, Report, InterviewSummary } from './types';
 
 const BASE = '/api';
 const HRFLOW_BASE = '/hrflow-api';
@@ -123,6 +123,16 @@ export async function textToSpeech(text: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+export async function listInterviews(): Promise<InterviewSummary[]> {
+  const res = await fetch(`${BASE}/hr/interviews`);
+  return handleResponse<InterviewSummary[]>(res);
+}
+
+export async function getHRReport(sessionId: string): Promise<Report> {
+  const res = await fetch(`${BASE}/hr/interviews/${sessionId}`);
+  return handleResponse<Report>(res);
 }
 
 export function playAudio(base64: string): { promise: Promise<void>; audio: HTMLAudioElement } {
