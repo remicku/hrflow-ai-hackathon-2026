@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   BrainCircuit, Users, RefreshCw, ChevronRight, ArrowLeft,
   CheckCircle2, ThumbsUp, AlertTriangle, ThumbsDown, Loader2,
-  AlertCircle, Trophy, BarChart3,
+  AlertCircle, Trophy, BarChart3, ArrowUpDown, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import { listInterviews, getHRReport } from '../api';
 import type { InterviewSummary, Report } from '../types';
@@ -38,6 +38,9 @@ const REC_CONFIG: Record<
   },
 };
 
+type SortField = 'date' | 'score' | 'name';
+type SortDir = 'asc' | 'desc';
+
 function scoreColor(score: number): string {
   if (score >= 80) return 'text-emerald-600';
   if (score >= 68) return 'text-green-600';
@@ -63,6 +66,31 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [selectedName, setSelectedName] = useState<string>('');
   const [loadingReport, setLoadingReport] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const sortedInterviews = useMemo(() => {
+    return [...interviews].sort((a, b) => {
+      let cmp = 0;
+      if (sortField === 'date') {
+        cmp = new Date(a.completed_at).getTime() - new Date(b.completed_at).getTime();
+      } else if (sortField === 'score') {
+        cmp = a.overall_score - b.overall_score;
+      } else if (sortField === 'name') {
+        cmp = a.candidate_name.localeCompare(b.candidate_name, 'fr');
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [interviews, sortField, sortDir]);
+
+  function handleSort(field: SortField) {
+    if (field === sortField) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  }
 
   const fetchInterviews = useCallback(async () => {
     setLoading(true);
@@ -231,8 +259,38 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
               </div>
             </div>
           ) : (
+            <>
+              {/* Sort controls */}
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="text-xs text-slate-400 font-medium mr-1">Trier par :</span>
+                {(
+                  [
+                    { field: 'date' as SortField, label: 'Date' },
+                    { field: 'score' as SortField, label: 'Score' },
+                    { field: 'name' as SortField, label: 'Nom' },
+                  ] as { field: SortField; label: string }[]
+                ).map(({ field, label }) => {
+                  const active = sortField === field;
+                  const Icon = active ? (sortDir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown;
+                  return (
+                    <button
+                      key={field}
+                      onClick={() => handleSort(field)}
+                      className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${
+                        active
+                          ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                          : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                      }`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
             <div className="space-y-3">
-              {interviews.map((interview) => {
+              {sortedInterviews.map((interview) => {
                 const rec = REC_CONFIG[interview.recommendation] ?? REC_CONFIG.no;
                 const isLoadingThis = loadingReport === interview.session_id;
                 return (
@@ -288,6 +346,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                 );
               })}
             </div>
+            </>
           )}
         </section>
 
