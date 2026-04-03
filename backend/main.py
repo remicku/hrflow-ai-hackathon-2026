@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from agent.interview_agent import InterviewAgent, build_candidate_brief
 from agent.report_builder import ReportBuilder
 from agent.scorer import InterviewScorer
+from backend.database import get_interview_report, init_db, list_interviews, save_report
 from backend.gradium_tts import text_to_speech
 from backend.hrflow_client import HRFlowClient
 from backend.session_store import SessionStore
@@ -154,6 +155,7 @@ class HealthResponse(BaseModel):
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    init_db()
     yield
 
 
@@ -404,6 +406,43 @@ async def get_report(
         job_reference=job_reference,
     )
     logger.info(report)
+
+    candidate_name = report.get("candidate_summary", {}).get("candidate_name", "Unknown")
+    overall_score = report.get("overall_score", 0.0)
+    recommendation = report.get("recommendation", "no")
+    save_report(session_id, candidate_name, overall_score, recommendation, report)
+
+    return report
+
+
+@app.get(
+    "/hr/interviews",
+    summary="List all completed interviews",
+    description="Returns a summary list of all completed interview sessions, ordered by most recent first.",
+    tags=["HR"],
+)
+async def hr_list_interviews() -> list[dict[str, Any]]:
+    """Return summary metadata for all persisted interview reports."""
+    return list_interviews()
+
+
+@app.get(
+    "/hr/interviews/{session_id}",
+    summary="Get full interview report (HR)",
+    description="Returns the full recruiter-facing report for a completed interview session.",
+    tags=["HR"],
+)
+async def hr_get_interview(
+    session_id: str = Path(
+        ...,
+        description="Session identifier of the completed interview.",
+        examples=["d7f6c4d1-5f7e-4b9d-a9a1-2ddf5ff5f123"],
+    ),
+) -> dict[str, Any]:
+    """Return the persisted full report JSON for a completed interview."""
+    report = get_interview_report(session_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Interview not found.")
     return report
 
 

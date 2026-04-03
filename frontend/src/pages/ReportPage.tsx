@@ -15,6 +15,7 @@ interface ReportPageProps {
   report: Report;
   candidateName: string;
   onRestart: () => void;
+  backLabel?: string;
 }
 
 const REC_CONFIG: Record<
@@ -91,7 +92,7 @@ function handlePrint() {
   window.print();
 }
 
-export default function ReportPage({ report, candidateName, onRestart }: ReportPageProps) {
+export default function ReportPage({ report, candidateName, onRestart, backLabel }: ReportPageProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'questions'>('overview');
   const rec = REC_CONFIG[report.recommendation] ?? REC_CONFIG.mixed;
   const hrflowGrade = normalizeHrflowGrade(report.hrflow_profile_job_grade);
@@ -162,7 +163,7 @@ export default function ReportPage({ report, candidateName, onRestart }: ReportP
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm transition-all"
             >
               <RotateCcw className="w-4 h-4" />
-              New Interview
+              {backLabel ?? 'New Interview'}
             </button>
           </div>
         </div>

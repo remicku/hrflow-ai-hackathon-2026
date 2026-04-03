@@ -1,4 +1,12 @@
-export type AppPage = 'landing' | 'briefing' | 'interview' | 'report';
+export type AppPage = 'landing' | 'briefing' | 'interview' | 'report' | 'hr_dashboard' | 'hr_report';
+
+export interface InterviewSummary {
+  session_id: string;
+  candidate_name: string;
+  completed_at: string;
+  overall_score: number;
+  recommendation: 'strong_yes' | 'yes' | 'mixed' | 'no';
+}
 
 export interface Experience {
   title: string;
