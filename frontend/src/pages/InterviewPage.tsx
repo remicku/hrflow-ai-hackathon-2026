@@ -66,8 +66,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   // Speak a question via TTS then transition to ready_to_record
   const speakQuestion = useCallback(
     async (question: Question) => {
-      setState('speaking');
       const tts = await textToSpeech(question.question);
+      setState('speaking');
       if (tts) {
         const { promise, audio } = playAudio(tts);
         audio.muted = !audioEnabledRef.current;
@@ -92,7 +92,23 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
         allQuestionsRef.current = data.generated_questions;
         setCurrentQuestion(data.current_question);
         setCurrentIndex(0);
-        await speakQuestion(data.current_question);
+        // Pre-fetch TTS in parallel with a 2s delay so avatar+audio start together
+        const [tts] = await Promise.all([
+          textToSpeech(data.current_question.question),
+          new Promise((r) => setTimeout(r, 2000)),
+        ]);
+        if (cancelled) return;
+        setState('speaking');
+        if (tts) {
+          const { promise, audio } = playAudio(tts);
+          audio.muted = !audioEnabledRef.current;
+          currentAudioRef.current = audio;
+          await promise;
+          currentAudioRef.current = null;
+        } else {
+          await new Promise((r) => setTimeout(r, 2500));
+        }
+        setState('ready_to_record');
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : 'Failed to start interview');
