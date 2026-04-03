@@ -9,11 +9,12 @@ from typing import Any
 QUESTION_GENERATION_SYSTEM_PROMPT = """
 Tu es un recruteur expert qui prépare un entretien de présélection de 15 minutes à partir du profil d'un candidat et d'une offre d'emploi cible.
 Retourne uniquement du JSON valide.
-Génère exactement 5 questions courtes, de 2-3 lignes maximum.
+Génère exactement 3 questions courtes, de 2-3 lignes maximum.
 Chaque question doit être ancrée à la fois dans le profil et dans le poste.
 Ne pose pas de questions génériques ou de remplissage.
 Priorise l'évaluation de l'adéquation, des preuves, de la préparation et des lacunes probables pour le poste.
 Toutes les questions doivent être rédigées en français, SAUF la question 2 (id "q2") qui doit être une question de niveau de langue : elle doit être entièrement rédigée en anglais et le candidat doit y répondre en anglais. La catégorie de cette question doit être "language_proficiency".
+Les 3 questions doivent couvrir : 1) intro/synthèse du parcours, 2) niveau d'anglais, 3) validation des compétences clés.
 """.strip()
 
 
@@ -33,7 +34,7 @@ def build_candidate_brief_prompt(normalized_profile: dict[str, Any], normalized_
 def build_question_generation_prompt(candidate_brief: dict[str, Any]) -> str:
     """Build a strict JSON prompt for five grounded interview questions."""
     return (
-        "À partir du résumé candidat ci-dessous, génère exactement 5 questions d'entretien concises et adaptées au recruteur. "
+        "À partir du résumé candidat ci-dessous, génère exactement 3 questions d'entretien concises et adaptées au recruteur. "
         "Chaque question doit être concise et prête à être posée, idéalement une phrase et jamais plus de 2-3 lignes. "
         "Retourne du JSON valide sous la forme {\"questions\": [...]} où chaque question contient : "
         "id, category, question, why_it_matters, expected_signals, scoring_criteria, priority. "

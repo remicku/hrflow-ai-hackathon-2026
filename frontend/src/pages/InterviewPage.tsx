@@ -27,7 +27,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   projection_motivation: 'Motivation',
 };
 
-const TOTAL_QUESTIONS = 5;
+const TOTAL_QUESTIONS = 3;
 
 interface InterviewPageProps {
   sessionData: SessionData;

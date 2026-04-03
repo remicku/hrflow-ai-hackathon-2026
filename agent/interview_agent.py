@@ -219,29 +219,11 @@ class InterviewAgent:
                 "scoring_criteria": ["pertinence", "spécificité", "clarté technique", "alignement poste"],
                 "priority": 2,
             },
-            {
-                "id": "q4",
-                "category": "situational_or_technical",
-                "question": f"Imaginez que vous démarrez dans le poste de {target_role} et que vous devez répondre à l'exigence suivante : {target_requirement}. Comment procéderiez-vous, en vous appuyant sur des expériences comme {secondary_context} ?",
-                "why_it_matters": "Explore comment le candidat transpose ses expériences passées dans un scénario pratique lié au poste cible.",
-                "expected_signals": ["raisonnement structuré", "réflexion technique ou situationnelle", "processus de décision", "applicabilité au poste"],
-                "scoring_criteria": ["clarté", "résolution de problèmes", "applicabilité", "alignement poste"],
-                "priority": 2,
-            },
-            {
-                "id": "q5",
-                "category": "projection_motivation",
-                "question": f"Qu'est-ce qui vous attire dans cette opportunité de {target_role}, et dans quels domaines pensez-vous monter en compétence rapidement versus avoir besoin d'accompagnement ?",
-                "why_it_matters": "Évalue la motivation, la conscience de soi et si le candidat comprend son adéquation probable avec le poste cible.",
-                "expected_signals": ["motivation", "conscience de soi", "projection future", "lucidité sur les lacunes"],
-                "scoring_criteria": ["pertinence", "cohérence", "communication", "motivation pour le poste"],
-                "priority": 3,
-            },
         ]
         return questions
 
     def _valid_question_set(self, questions: Any) -> bool:
-        if not isinstance(questions, list) or len(questions) != 5:
+        if not isinstance(questions, list) or len(questions) != 3:
             return False
         required = {"id", "category", "question", "why_it_matters", "expected_signals", "scoring_criteria", "priority"}
         for question in questions:

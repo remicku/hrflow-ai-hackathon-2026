@@ -177,7 +177,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
                 <li>• Make sure your microphone is connected</li>
                 <li>• Find a quiet environment</li>
                 <li>• Answer clearly and specifically</li>
-                <li>• 5 questions, take your time</li>
+                <li>• 3 questions, take your time</li>
               </ul>
             </div>
 
