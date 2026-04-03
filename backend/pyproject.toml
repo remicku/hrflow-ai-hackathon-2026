@@ -6,6 +6,8 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "httpx",
+    "certifi",
+    "gradium",
     "pydantic",
     "python-dotenv",
     "agent",
