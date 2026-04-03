@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 from contextlib import asynccontextmanager
 from typing import Any
 import logging
 
-from fastapi import FastAPI, HTTPException, Path
+from fastapi import FastAPI, HTTPException, Path, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,6 +17,7 @@ from agent.report_builder import ReportBuilder
 from agent.scorer import InterviewScorer
 from backend.database import get_interview_report, init_db, list_interviews, save_report
 from backend.gradium_tts import text_to_speech
+from backend.voxtral_stt import speech_to_text as voxtral_stt
 from backend.hrflow_client import HRFlowClient
 from backend.session_store import SessionStore
 
@@ -121,6 +123,13 @@ class TTSResponse(BaseModel):
     available: bool = Field(
         description="Whether TTS generation succeeded for this request."
     )
+
+
+class STTResponse(BaseModel):
+    """Speech-to-text response payload."""
+
+    text: str | None = Field(description="Transcribed text, or null if transcription failed.")
+    available: bool = Field(description="Whether transcription succeeded.")
 
 
 class ProfilePayload(BaseModel):
@@ -413,6 +422,29 @@ async def get_report(
     save_report(session_id, candidate_name, overall_score, recommendation, report)
 
     return report
+
+
+@app.post(
+    "/stt",
+    response_model=STTResponse,
+    summary="Transcribe audio with Voxtral",
+    description=(
+        "Transcribes an audio file locally using the Voxtral model via mistral-inference.\n\n"
+        "Accepts multipart/form-data with an `audio` file field and optional `lang` parameter (default: 'fr')."
+    ),
+    tags=["Audio"],
+)
+async def stt(
+    audio: UploadFile = File(..., description="Audio file to transcribe (webm or mp4)."),
+    lang: str = Form(default="fr", description="Language code for transcription (e.g. 'fr', 'en')."),
+) -> STTResponse:
+    """Transcribe audio using Voxtral locally."""
+    audio_bytes = await audio.read()
+    audio_format = "mp4" if (audio.content_type or "").endswith("mp4") else "webm"
+    text = await voxtral_stt(audio_bytes, audio_format, lang)
+    if text is None:
+        return STTResponse(text=None, available=False)
+    return STTResponse(text=text.strip(), available=True)
 
 
 @app.get(

@@ -10,6 +10,8 @@ dependencies = [
     "gradium",
     "pydantic",
     "python-dotenv",
+    "python-multipart",
+    "mlx-whisper",
     "agent",
 ]
 
