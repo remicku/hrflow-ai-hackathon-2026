@@ -351,7 +351,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
               <p className="text-slate-800 text-sm md:text-base leading-relaxed text-center">
                 {currentQuestion.question}
               </p>
-              {state === 'ready_to_record' && currentQuestion.expected_signals.length > 0 && (
+              {state === 'ready_to_record' && Array.isArray(currentQuestion.expected_signals) && currentQuestion.expected_signals.length > 0 && (
                 <p className="text-slate-400 text-xs text-center mt-1">
                   Tip: {currentQuestion.expected_signals.slice(0, 2).join(', ')}
                 </p>
