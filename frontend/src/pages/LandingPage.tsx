@@ -1,13 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   BrainCircuit, Zap, Shield, BarChart3, AlertCircle, Loader2,
-  KeyRound, Hash, AtSign, ChevronRight, Info, Briefcase,
+  KeyRound, Hash, AtSign, ChevronRight, Info, Briefcase, Users,
 } from 'lucide-react';
 import { fetchHRFlowProfile, fetchHRFlowJob, createSession } from '../api';
 import type { SessionData } from '../types';
 
 interface LandingPageProps {
   onSessionCreated: (data: SessionData) => void;
+  onOpenHR: () => void;
 }
 
 interface FormState {
@@ -31,7 +32,7 @@ function getInitialForm(): FormState {
   };
 }
 
-export default function LandingPage({ onSessionCreated }: LandingPageProps) {
+export default function LandingPage({ onSessionCreated, onOpenHR }: LandingPageProps) {
   const [form, setForm] = useState<FormState>(getInitialForm);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
@@ -120,10 +121,19 @@ export default function LandingPage({ onSessionCreated }: LandingPageProps) {
                 <span className="ml-2 text-xs text-slate-400 font-medium">powered by HRFlow</span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live
-            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onOpenHR}
+                className="flex items-center gap-2 text-sm text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-4 py-2 rounded-xl shadow-md transition-all font-medium"
+              >
+                <Users className="w-4 h-4" />
+                Tableau de bord RH
+              </button>
+              <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live
+              </span>
+            </div>
           </div>
         </header>
 
