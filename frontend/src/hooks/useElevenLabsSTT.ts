@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 
-const ELEVENLABS_STT_URL = 'https://api.elevenlabs.io/v1/speech-to-text';
+const STT_URL = '/api/stt';
 
 export interface UseElevenLabsSTTReturn {
   transcript: string;
@@ -68,26 +68,21 @@ export function useElevenLabsSTT(lang = 'fr'): UseElevenLabsSTTReturn {
 
   const transcribeAudio = useCallback(
     async (audioBlob: Blob): Promise<string> => {
-      const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
-      if (!apiKey) return '';
-
       setIsTranscribing(true);
       try {
-        const formData = new FormData();
         const ext = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
-        formData.append('file', audioBlob, `audio.${ext}`);
-        formData.append('model_id', 'scribe_v1');
-        formData.append('language_code', lang);
+        const formData = new FormData();
+        formData.append('audio', audioBlob, `audio.${ext}`);
+        formData.append('lang', lang);
 
-        const res = await fetch(ELEVENLABS_STT_URL, {
+        const res = await fetch(STT_URL, {
           method: 'POST',
-          headers: { 'xi-api-key': apiKey },
           body: formData,
         });
 
         if (!res.ok) return '';
         const data = await res.json();
-        return data.text || '';
+        return data.available ? (data.text ?? '') : '';
       } catch {
         return '';
       } finally {
