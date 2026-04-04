@@ -19,16 +19,16 @@ aiohttp.connector._SSL_CONTEXT_VERIFIED = _ssl_context
 logger = logging.getLogger(__name__)
 
 
-async def text_to_speech(text: str) -> bytes | None:
+async def text_to_speech(text: str, voice_id: str | None = None) -> bytes | None:
     """Generate speech audio bytes, or return None when unavailable."""
     api_key = os.getenv("GRADIUM_API_KEY")
-    voice_id = os.getenv("GRADIUM_VOICE_ID")
-    if not api_key or not voice_id or not text.strip():
+    resolved_voice_id = voice_id or os.getenv("GRADIUM_VOICE_ID")
+    if not api_key or not resolved_voice_id or not text.strip():
         return None
 
     try:
         client = GradiumClient(api_key=api_key)
-        setup = TTSSetup(voice_id=voice_id, output_format="wav")
+        setup = TTSSetup(voice_id=resolved_voice_id, output_format="wav")
         result = await client.tts(setup, text)
         return result.raw_data
     except Exception:

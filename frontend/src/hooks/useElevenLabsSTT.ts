@@ -14,16 +14,80 @@ export interface UseElevenLabsSTTReturn {
   isSupported: boolean;
 }
 
-export function useElevenLabsSTT(lang = 'fr'): UseElevenLabsSTTReturn {
+export function useElevenLabsSTT(
+  lang = 'fr',
+  onSilenceDetected?: () => void,
+  silenceThreshold = 0.01,
+  silenceDelay = 2000,
+  minDurationMs = 1000,
+): UseElevenLabsSTTReturn {
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isListeningRef = useRef(false);
+  const onSilenceRef = useRef(onSilenceDetected);
+  onSilenceRef.current = onSilenceDetected;
 
   const isSupported =
     typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
+
+  const stopSilenceDetection = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+  }, []);
+
+  const startSilenceDetection = useCallback((stream: MediaStream) => {
+    const audioContext = new AudioContext();
+    audioContextRef.current = audioContext;
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    const source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    const startTime = Date.now();
+    let hasSpeaken = false;
+
+    const check = () => {
+      if (!isListeningRef.current) return;
+      analyser.getByteTimeDomainData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        const val = (dataArray[i] - 128) / 128;
+        sum += val * val;
+      }
+      const rms = Math.sqrt(sum / dataArray.length);
+      const elapsed = Date.now() - startTime;
+
+      if (rms > silenceThreshold) {
+        hasSpeaken = true;
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+      } else if (hasSpeaken && elapsed > minDurationMs) {
+        if (!silenceTimerRef.current) {
+          silenceTimerRef.current = setTimeout(() => {
+            onSilenceRef.current?.();
+          }, silenceDelay);
+        }
+      }
+
+      requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  }, [silenceThreshold, silenceDelay, minDurationMs]);
 
   const startListening = useCallback(async () => {
     if (!isSupported) return;
@@ -40,13 +104,17 @@ export function useElevenLabsSTT(lang = 'fr'): UseElevenLabsSTTReturn {
       };
 
       mediaRecorder.start(100);
+      isListeningRef.current = true;
       setIsListening(true);
+      startSilenceDetection(stream);
     } catch (e) {
       console.error('Failed to start recording:', e);
     }
-  }, [isSupported]);
+  }, [isSupported, startSilenceDetection]);
 
   const stopRecording = useCallback((): Promise<Blob> => {
+    isListeningRef.current = false;
+    stopSilenceDetection();
     return new Promise((resolve) => {
       const recorder = mediaRecorderRef.current;
       if (!recorder || recorder.state === 'inactive') {
@@ -64,7 +132,7 @@ export function useElevenLabsSTT(lang = 'fr'): UseElevenLabsSTTReturn {
       recorder.stop();
       setIsListening(false);
     });
-  }, []);
+  }, [stopSilenceDetection]);
 
   const transcribeAudio = useCallback(
     async (audioBlob: Blob): Promise<string> => {

@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Mic, MicOff, Send, ChevronRight, AlertCircle, Loader2, Volume2, VolumeX,
-  PhoneOff, User,
+  PhoneOff,
 } from 'lucide-react';
 import Avatar from '../components/Avatar';
 import Webcam from '../components/Webcam';
-import { ScoreBar } from '../components/ScoreBar';
 import { startInterview, submitAnswer, getReport, textToSpeech, playAudio } from '../api';
 import { useElevenLabsSTT } from '../hooks/useElevenLabsSTT';
 import type { SessionData, Question, Evaluation, Report } from '../types';
@@ -38,6 +37,11 @@ interface InterviewPageProps {
 export default function InterviewPage({ sessionData, onComplete }: InterviewPageProps) {
   const { session_id: sessionId } = sessionData;
 
+  const VOICE_FR = '8_M2uwvmyM-BadY9';
+  const VOICE_EN = 'HtgP9v8SoWbq_jxi';
+  const getVoiceId = (question: Question) =>
+    question.category === 'language_proficiency' ? VOICE_EN : VOICE_FR;
+
   const [state, setState] = useState<InterviewState>('loading');
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -52,6 +56,9 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   const audioEnabledRef = useRef(audioEnabled);
   audioEnabledRef.current = audioEnabled;
 
+  // Ref to always call the latest handleSubmit from the silence callback
+  const handleSubmitRef = useRef<() => Promise<void>>(async () => {});
+
   const {
     transcript,
     interimTranscript,
@@ -62,12 +69,15 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     stopAndGetTranscript,
     resetTranscript,
     isSupported: speechSupported,
-  } = useElevenLabsSTT('fr');
+  } = useElevenLabsSTT(
+    currentQuestion?.category === 'language_proficiency' ? 'en' : 'fr',
+    () => { handleSubmitRef.current(); },
+  );
 
   // Speak a question via TTS then transition to ready_to_record
   const speakQuestion = useCallback(
     async (question: Question) => {
-      const tts = await textToSpeech(question.question);
+      const tts = await textToSpeech(question.question, getVoiceId(question));
       setState('speaking');
       if (tts) {
         const { promise, audio } = playAudio(tts);
@@ -95,7 +105,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
         setCurrentIndex(0);
         // Pre-fetch TTS in parallel with a 2s delay so avatar+audio start together
         const [tts] = await Promise.all([
-          textToSpeech(data.current_question.question),
+          textToSpeech(data.current_question.question, getVoiceId(data.current_question)),
           new Promise((r) => setTimeout(r, 2000)),
         ]);
         if (cancelled) return;
@@ -172,6 +182,9 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     onComplete,
   ]);
 
+  // Keep ref in sync so the silence callback always calls the latest handleSubmit
+  handleSubmitRef.current = handleSubmit;
+
   const handleNextQuestion = useCallback(async () => {
     const res = lastAnswerRes.current;
     if (!res) return;
@@ -194,6 +207,24 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
       await speakQuestion(next);
     }
   }, [sessionId, resetTranscript, speakQuestion, onComplete]);
+
+  // Auto-start recording as soon as the interviewer finishes speaking
+  const prevStateRef = useRef<InterviewState | null>(null);
+  useEffect(() => {
+    if (
+      state === 'ready_to_record' &&
+      prevStateRef.current === 'speaking' &&
+      !useManualInput &&
+      speechSupported
+    ) {
+      resetTranscript();
+      setManualText('');
+      setState('listening');
+      startListening();
+    }
+    prevStateRef.current = state;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   const avatarState = (() => {
     if (state === 'speaking') return 'speaking';
@@ -246,75 +277,22 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     );
   }
 
-  // --- Evaluated state: score overlay ---
+  // --- Evaluated state: simple confirmation, no scores shown to candidate ---
   if (state === 'evaluated' && evaluation) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-start justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-lg py-8 animate-scale-in">
-          {/* Score reveal */}
-          <div className="glass-card rounded-2xl p-8 text-center mb-6">
-            <p className="text-slate-400 text-sm mb-4">Answer evaluated</p>
-            <div className="text-6xl font-extrabold mb-2">
-              <span className={`
-                ${evaluation.normalized_score >= 75 ? 'text-emerald-500' :
-                  evaluation.normalized_score >= 60 ? 'text-amber-500' : 'text-rose-500'}
-              `}>
-                {Math.round(evaluation.normalized_score)}
-              </span>
-              <span className="text-slate-300 text-3xl">/100</span>
-            </div>
-            <p className="text-slate-500 text-sm">{evaluation.rationale}</p>
+      <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6 animate-fade-in text-center px-4">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+            <ChevronRight className="w-8 h-8 text-emerald-600" />
           </div>
-
-          {/* Subscores */}
-          <div className="glass-card rounded-2xl p-6 space-y-3 mb-6">
-            <ScoreBar label="Relevance" value={evaluation.subscores.relevance} />
-            <ScoreBar label="Specificity" value={evaluation.subscores.specificity} />
-            <ScoreBar label="Consistency" value={evaluation.subscores.consistency_with_profile} />
-            <ScoreBar label="Job Alignment" value={evaluation.subscores.job_alignment} />
-            <ScoreBar label="Clarity" value={evaluation.subscores.clarity} />
-            {evaluation.subscores.technical_accuracy !== null && (
-              <ScoreBar label="Technical Accuracy" value={evaluation.subscores.technical_accuracy} />
-            )}
-          </div>
-
-          {/* Strengths & Concerns */}
-          <div className="grid grid-cols-2 gap-4">
-            {evaluation.strengths.length > 0 && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                <p className="text-emerald-600 text-xs font-semibold mb-2 uppercase tracking-wider">Strengths</p>
-                <ul className="space-y-1">
-                  {evaluation.strengths.map((s, i) => (
-                    <li key={i} className="text-slate-600 text-xs flex gap-2">
-                      <span className="text-emerald-500 shrink-0">+</span>{s}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {evaluation.concerns.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <p className="text-amber-600 text-xs font-semibold mb-2 uppercase tracking-wider">To improve</p>
-                <ul className="space-y-1">
-                  {evaluation.concerns.map((c, i) => (
-                    <li key={i} className="text-slate-600 text-xs flex gap-2">
-                      <span className="text-amber-500 shrink-0">!</span>{c}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <div className="text-center mt-6">
-            <button
-              onClick={handleNextQuestion}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-2"
-            >
-              {currentIndex < TOTAL_QUESTIONS - 1 ? 'Question suivante' : 'Voir le rapport final'}
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          <p className="text-slate-600 text-lg font-medium">Réponse enregistrée</p>
+          <button
+            onClick={handleNextQuestion}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-2"
+          >
+            {currentIndex < TOTAL_QUESTIONS - 1 ? 'Question suivante' : 'Terminer l\'entretien'}
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     );

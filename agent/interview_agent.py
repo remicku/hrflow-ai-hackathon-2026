@@ -195,7 +195,7 @@ class InterviewAgent:
             {
                 "id": "q1",
                 "category": "intro_synthesis",
-                "question": f"Pouvez-vous me présenter votre parcours et m'expliquer en quoi il fait de vous un bon candidat pour le poste de {target_role} chez {target_company} ?",
+                "question": f"Bonjour {name}, bienvenue dans cet entretien ! Pouvez-vous me présenter votre parcours et m'expliquer en quoi il fait de vous un bon candidat pour le poste de {target_role} chez {target_company} ?",
                 "why_it_matters": f"Vérifie si {name} sait relier son parcours au poste cible plutôt que de simplement résumer ses expériences passées.",
                 "expected_signals": ["synthèse claire", "progression de carrière", "adéquation au poste", "points forts pertinents"],
                 "scoring_criteria": ["réponse structurée", "alignement profil", "alignement poste", "synthèse concise"],

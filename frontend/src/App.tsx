@@ -2,7 +2,7 @@ import { useState } from 'react';
 import LandingPage from './pages/LandingPage';
 import BriefingPage from './pages/BriefingPage';
 import InterviewPage from './pages/InterviewPage';
-import ReportPage from './pages/ReportPage';
+import CompletionPage from './pages/CompletionPage';
 import HRDashboard from './pages/HRDashboard';
 import type { AppPage, SessionData, Report } from './types';
 
@@ -43,12 +43,8 @@ export default function App() {
           }}
         />
       )}
-      {page === 'report' && report && sessionData && (
-        <ReportPage
-          report={report}
-          candidateName={sessionData.candidate_brief.candidate_name}
-          onRestart={handleRestart}
-        />
+      {page === 'report' && sessionData && (
+        <CompletionPage candidateName={sessionData.candidate_brief.candidate_name} />
       )}
       {page === 'hr_dashboard' && (
         <HRDashboard onBack={() => setPage('landing')} />
