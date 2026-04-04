@@ -1,4 +1,6 @@
-import type { SessionData, StartResponse, AnswerResponse, Report, InterviewSummary } from './types';
+import type { SessionData, StartResponse, AnswerResponse, Report, InterviewSummary, JobListing } from './types';
+// JobSection is part of JobListing but re-exported for convenience
+export type { JobSection } from './types';
 
 const BASE = '/api';
 const HRFLOW_BASE = '/hrflow-api';
@@ -71,6 +73,33 @@ export async function fetchHRFlowJob(params: {
   const job = data?.data as Record<string, unknown> | undefined;
   if (!job || !job.key) throw new Error('No job found for the given identifiers.');
   return job;
+}
+
+export async function fetchJobList(boardKey?: string, limit = 12): Promise<JobListing[]> {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (boardKey) query.set('board_key', boardKey);
+  const res = await fetch(`${BASE}/jobs?${query}`);
+  const data = await handleResponse<{ jobs: JobListing[] }>(res);
+  return data.jobs ?? [];
+}
+
+export async function parseCV(
+  file: File,
+  sourceKey?: string,
+  boardKey?: string,
+  jobKey?: string,
+): Promise<SessionData> {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (sourceKey) formData.append('source_key', sourceKey);
+  if (boardKey) formData.append('board_key', boardKey);
+  if (jobKey) formData.append('job_key', jobKey);
+
+  const res = await fetch(`${BASE}/profile/parse-cv`, {
+    method: 'POST',
+    body: formData,
+  });
+  return handleResponse<SessionData>(res);
 }
 
 export async function createSession(

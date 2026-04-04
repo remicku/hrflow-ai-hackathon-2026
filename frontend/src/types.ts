@@ -1,5 +1,27 @@
 export type AppPage = 'landing' | 'briefing' | 'interview' | 'report' | 'hr_dashboard' | 'hr_report';
 
+export interface JobSection {
+  title: string;
+  description: string;
+}
+
+export interface JobListing {
+  key: string;
+  board_key: string;
+  title: string;
+  company: string;
+  location: string;
+  contract_type: string;
+  skills: string[];
+  summary: string;
+  sections: JobSection[];
+  requirements: string;
+  responsibilities: string;
+  benefits: string;
+  url: string;
+  created_at: string;
+}
+
 export interface InterviewSummary {
   session_id: string;
   candidate_name: string;
