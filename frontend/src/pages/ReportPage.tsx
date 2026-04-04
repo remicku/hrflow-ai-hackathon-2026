@@ -359,59 +359,37 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
             </div>
 
             {/* Behavioral signals */}
-            {report.gaze_summary != null && (
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-slate-900 font-semibold mb-4 flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-indigo-500" />
-                  Signaux comportementaux
-                </h3>
-                {report.gaze_summary.look_away_count === 0 ? (
-                  <div className="flex items-center gap-2 text-emerald-600">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span className="text-sm">Aucun comportement suspect détecté</span>
+            {report.gaze_summary != null && (() => {
+              const g = report.gaze_summary;
+              const totalSec = Math.round(g.total_look_away_ms / 1000);
+              // Verdict: suspicious if >15s total look-away
+              const suspicious = g.total_look_away_ms > 15_000;
+              return (
+                <div className={`rounded-2xl px-5 py-4 flex items-center justify-between gap-6 border ${
+                  suspicious ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'
+                }`}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Eye className={`w-4 h-4 shrink-0 ${suspicious ? 'text-rose-500' : 'text-emerald-500'}`} />
+                    <div>
+                      <p className={`text-sm font-semibold ${suspicious ? 'text-rose-700' : 'text-emerald-700'}`}>
+                        {suspicious ? 'Comportement suspect' : 'Aucun comportement suspect'}
+                      </p>
+                      {g.look_away_count > 0 && (
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {g.look_away_count} détournement{g.look_away_count > 1 ? 's' : ''} · {totalSec}s au total
+                          {g.events.some(e => e.reason === 'no_face') ? ' · visage absent' : ''}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                        <p className="text-2xl font-bold text-amber-700">
-                          {report.gaze_summary.look_away_count}
-                        </p>
-                        <p className="text-xs text-amber-600 mt-1">Détournements de regard</p>
-                      </div>
-                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                        <p className="text-2xl font-bold text-amber-700">
-                          {Math.round(report.gaze_summary.total_look_away_ms / 1000)}s
-                        </p>
-                        <p className="text-xs text-amber-600 mt-1">Durée totale</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {report.gaze_summary.events.map((event, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between text-sm bg-slate-50 rounded-lg px-3 py-2"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">
-                              Q{event.question_index + 1}
-                            </span>
-                            <span className="text-slate-500">
-                              {event.reason === 'no_face'
-                                ? 'Visage non détecté'
-                                : 'Regard détourné'}
-                            </span>
-                          </div>
-                          <span className="text-amber-600 font-medium">
-                            {(Math.round(event.duration_ms / 100) / 10).toFixed(1)}s
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full shrink-0 ${
+                    suspicious ? 'bg-rose-200 text-rose-800' : 'bg-emerald-200 text-emerald-800'
+                  }`}>
+                    {suspicious ? 'Triche probable' : 'Fiable'}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         )}
 
