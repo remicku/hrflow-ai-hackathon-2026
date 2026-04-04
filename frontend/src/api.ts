@@ -1,4 +1,4 @@
-import type { SessionData, StartResponse, AnswerResponse, Report, InterviewSummary, JobListing } from './types';
+import type { SessionData, StartResponse, AnswerResponse, Report, InterviewSummary, JobListing, GazeSummary } from './types';
 // JobSection is part of JobListing but re-exported for convenience
 export type { JobSection } from './types';
 
@@ -137,6 +137,21 @@ export async function submitAnswer(
 export async function getReport(sessionId: string): Promise<Report> {
   const res = await fetch(`${BASE}/sessions/${sessionId}/report`);
   return handleResponse<Report>(res);
+}
+
+export async function submitGazeSummary(
+  sessionId: string,
+  summary: GazeSummary,
+): Promise<void> {
+  try {
+    await fetch(`${BASE}/sessions/${sessionId}/gaze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(summary),
+    });
+  } catch {
+    // Non-blocking: gaze data is optional
+  }
 }
 
 export async function textToSpeech(text: string, voiceId?: string): Promise<string | null> {

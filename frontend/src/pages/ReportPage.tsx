@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   CheckCircle2, AlertTriangle, XCircle, TrendingUp, RotateCcw,
-  Download, BrainCircuit, ThumbsUp, ThumbsDown,
+  Download, BrainCircuit, ThumbsUp, ThumbsDown, Eye,
 } from 'lucide-react';
 import { ScoreCircle, ScoreBar } from '../components/ScoreBar';
 import type { Report } from '../types';
@@ -357,6 +357,61 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                 <ScoreBar label="Job Alignment" value={report.job_alignment_score} />
               </div>
             </div>
+
+            {/* Behavioral signals */}
+            {report.gaze_summary != null && (
+              <div className="glass-card rounded-2xl p-6">
+                <h3 className="text-slate-900 font-semibold mb-4 flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-indigo-500" />
+                  Signaux comportementaux
+                </h3>
+                {report.gaze_summary.look_away_count === 0 ? (
+                  <div className="flex items-center gap-2 text-emerald-600">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-sm">Aucun comportement suspect détecté</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <p className="text-2xl font-bold text-amber-700">
+                          {report.gaze_summary.look_away_count}
+                        </p>
+                        <p className="text-xs text-amber-600 mt-1">Détournements de regard</p>
+                      </div>
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <p className="text-2xl font-bold text-amber-700">
+                          {Math.round(report.gaze_summary.total_look_away_ms / 1000)}s
+                        </p>
+                        <p className="text-xs text-amber-600 mt-1">Durée totale</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {report.gaze_summary.events.map((event, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between text-sm bg-slate-50 rounded-lg px-3 py-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                              Q{event.question_index + 1}
+                            </span>
+                            <span className="text-slate-500">
+                              {event.reason === 'no_face'
+                                ? 'Visage non détecté'
+                                : 'Regard détourné'}
+                            </span>
+                          </div>
+                          <span className="text-amber-600 font-medium">
+                            {(Math.round(event.duration_ms / 100) / 10).toFixed(1)}s
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 

@@ -28,6 +28,7 @@ class SessionRecord:
     generated_questions: list[dict[str, Any]] = field(default_factory=list)
     answers: list[dict[str, Any]] = field(default_factory=list)
     evaluations: list[dict[str, Any]] = field(default_factory=list)
+    gaze_summary: dict[str, Any] | None = None
     status: str = "created"
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
@@ -104,6 +105,16 @@ class SessionStore:
             record.status = status
             if status == "completed":
                 record.completed_at = utc_now()
+            record.touch()
+            return deepcopy(record)
+
+    def save_gaze(self, session_id: str, gaze_summary: dict[str, Any]) -> SessionRecord | None:
+        """Store client-side gaze tracking summary for a session."""
+        with self._lock:
+            record = self._sessions.get(session_id)
+            if not record:
+                return None
+            record.gaze_summary = deepcopy(gaze_summary)
             record.touch()
             return deepcopy(record)
 
