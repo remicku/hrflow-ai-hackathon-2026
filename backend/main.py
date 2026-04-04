@@ -112,6 +112,10 @@ class TTSRequest(BaseModel):
         description="Plain text to synthesize into speech.",
         examples=["Can you walk me through your background and how it led you to backend engineering?"],
     )
+    voice_id: str | None = Field(
+        default=None,
+        description="Gradium voice ID to use. Falls back to GRADIUM_VOICE_ID env var if omitted.",
+    )
 
 
 class TTSResponse(BaseModel):
@@ -491,7 +495,7 @@ async def hr_get_interview(
 )
 async def tts(payload: TTSRequest) -> TTSResponse:
     """Generate TTS audio when Gradium is configured."""
-    audio = await text_to_speech(payload.text)
+    audio = await text_to_speech(payload.text, payload.voice_id)
     if not audio:
         return TTSResponse(audio_base64=None, available=False)
     return TTSResponse(audio_base64=base64.b64encode(audio).decode("ascii"), available=True)

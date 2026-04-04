@@ -110,12 +110,12 @@ export async function getReport(sessionId: string): Promise<Report> {
   return handleResponse<Report>(res);
 }
 
-export async function textToSpeech(text: string): Promise<string | null> {
+export async function textToSpeech(text: string, voiceId?: string): Promise<string | null> {
   try {
     const res = await fetch(`${BASE}/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, voice_id: voiceId ?? null }),
     });
     if (!res.ok) return null;
     const data = await res.json();
