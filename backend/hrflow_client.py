@@ -352,6 +352,61 @@ class HRFlowClient:
         path = f"profile_parsing/indexing/{source_key}/profiles/{profile_key}/searching"
         return await self._request("POST", path, {"query": question})
 
+    async def list_jobs(
+        self,
+        board_key: str | None = None,
+        limit: int = 12,
+        page: int = 1,
+    ) -> dict[str, Any]:
+        """List jobs from a HRflow board via the jobs/searching endpoint."""
+        resolved_board_key = board_key or self.board_key
+        if not resolved_board_key:
+            raise HRFlowConfigurationError("board_key is required for listing jobs.")
+        params: dict[str, Any] = {
+            "board_keys": f'["{resolved_board_key}"]',
+            "limit": limit,
+            "page": page,
+            "order_by": "desc",
+            "sort_by": "updated_at",
+        }
+        return await self._request("GET", "jobs/searching", params=params)
+
+    async def parse_cv_file(
+        self,
+        file_bytes: bytes,
+        filename: str,
+        source_key: str | None = None,
+    ) -> dict[str, Any]:
+        """Parse a CV/resume file via HRFlow Profile Parsing API (sync mode)."""
+        if not self.api_key:
+            raise HRFlowConfigurationError("HRFLOW_API_KEY is not configured.")
+        resolved_source_key = source_key or self.source_key
+        if not resolved_source_key:
+            raise HRFlowConfigurationError("source_key is required for CV parsing.")
+
+        url = f"{self.base_url}/profile/parsing/file"
+        headers: dict[str, str] = {"X-API-KEY": self.api_key}
+        if self.user_email:
+            headers["X-USER-EMAIL"] = self.user_email
+
+        files = {"file": (filename, file_bytes, "application/octet-stream")}
+        data = {"source_key": resolved_source_key, "sync_parsing": "1"}
+
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(url, headers=headers, files=files, data=data)
+                response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            detail = exc.response.text.strip()
+            raise HRFlowRequestError(f"HRFlow CV parsing error {exc.response.status_code}: {detail}") from exc
+        except httpx.HTTPError as exc:
+            raise HRFlowRequestError(f"HRFlow CV parsing request failed: {exc}") from exc
+
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise HRFlowRequestError("HRFlow CV parsing returned non-JSON content.") from exc
+
     async def parse_text(self, text: str, text_language: str = "en") -> dict[str, Any]:
         """Parse raw text via HRFlow Text API."""
         payload = {"text": text, "language": text_language}

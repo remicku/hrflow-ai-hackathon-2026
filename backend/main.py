@@ -428,6 +428,150 @@ async def get_report(
     return report
 
 
+@app.get(
+    "/jobs",
+    summary="List available job offers",
+    description="Returns a list of job offers from the configured HRflow board.",
+    tags=["Jobs"],
+)
+async def list_jobs(
+    board_key: str | None = None,
+    limit: int = 12,
+    page: int = 1,
+) -> dict[str, Any]:
+    """Proxy HRflow jobs/searching and return a compact list for the UI."""
+    try:
+        result = await hrflow_client.list_jobs(board_key=board_key, limit=limit, page=page)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Could not fetch jobs: {exc}") from exc
+
+    raw_jobs = []
+    data = result.get("data")
+    if isinstance(data, dict):
+        raw_jobs = data.get("jobs", []) or []
+    elif isinstance(data, list):
+        raw_jobs = data
+
+    jobs = []
+    for job in raw_jobs:
+        if not isinstance(job, dict):
+            continue
+        board = job.get("board") if isinstance(job.get("board"), dict) else {}
+        location = job.get("location") if isinstance(job.get("location"), dict) else {}
+        skills = [
+            s.get("name") or s.get("label") or ""
+            for s in (job.get("skills") or [])
+            if isinstance(s, dict)
+        ]
+        sections = job.get("sections") or []
+        parsed_sections = []
+        for section in sections:
+            if isinstance(section, dict):
+                title = (section.get("title") or section.get("name") or "").strip()
+                desc = (section.get("description") or section.get("text") or "").strip()
+                if desc:
+                    parsed_sections.append({"title": title, "description": desc})
+
+        summary = (job.get("summary") or "").strip()
+
+        def _extract_text(field: Any) -> str:
+            if not field:
+                return ""
+            if isinstance(field, str):
+                return field.strip()
+            if isinstance(field, dict):
+                return (field.get("text") or field.get("description") or "").strip()
+            return ""
+
+        jobs.append({
+            "key": job.get("key") or job.get("id") or "",
+            "board_key": board.get("key") or board_key or hrflow_client.board_key or "",
+            "title": job.get("name") or job.get("title") or "Offre sans titre",
+            "company": board.get("name") or job.get("company") or "",
+            "location": location.get("text") or job.get("location") or "",
+            "contract_type": (job.get("info") or {}).get("contract_type") or job.get("contract_type") or "",
+            "skills": [s for s in skills if s],
+            "summary": summary,
+            "sections": parsed_sections,
+            "requirements": _extract_text(job.get("requirements")),
+            "responsibilities": _extract_text(job.get("responsibilities")),
+            "benefits": _extract_text(job.get("benefits")),
+            "url": job.get("url") or "",
+            "created_at": job.get("created_at") or "",
+        })
+
+    return {"jobs": jobs, "total": len(jobs)}
+
+
+@app.post(
+    "/profile/parse-cv",
+    response_model=SessionCreateResponse,
+    summary="Parse CV and create interview session",
+    description=(
+        "Parses a CV/resume file via HRFlow Profile Parsing API and creates a ready-to-start interview session.\n\n"
+        "Accepts a multipart form with a `file` field (PDF, DOC, DOCX) and optional "
+        "`source_key`, `board_key`, `job_key` fields.\n\n"
+        "On success, returns the same payload as `POST /sessions`, allowing the client to proceed "
+        "directly to `POST /sessions/{session_id}/start`."
+    ),
+    tags=["Sessions"],
+)
+async def parse_cv_and_create_session(
+    file: UploadFile = File(..., description="CV/resume file (PDF, DOC, DOCX)."),
+    source_key: str | None = Form(default=None, description="HRFlow source key. Falls back to HRFLOW_SOURCE_KEY env var."),
+    board_key: str | None = Form(default=None, description="HRFlow board key for the target job offer (optional)."),
+    job_key: str | None = Form(default=None, description="HRFlow job key for the target job offer (optional)."),
+) -> SessionCreateResponse:
+    """Parse a CV file via HRFlow, then create and return an interview session."""
+    file_bytes = await file.read()
+    filename = file.filename or "cv.pdf"
+
+    try:
+        parse_result = await hrflow_client.parse_cv_file(file_bytes, filename, source_key)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"CV parsing failed: {exc}") from exc
+
+    # HRFlow response shape: { "data": { "profile": {...} } }
+    data = parse_result.get("data") if isinstance(parse_result.get("data"), dict) else {}
+    raw_profile = data.get("profile") if isinstance(data.get("profile"), dict) else {}
+    if not raw_profile:
+        raise HTTPException(status_code=400, detail="CV parsing returned an empty profile. Check your source_key and file format.")
+
+    raw_job_offer: dict | None = None
+    resolved_board_key = board_key or hrflow_client.board_key
+    if resolved_board_key and job_key:
+        try:
+            job_result = await hrflow_client._request(
+                "GET", "job/indexing", params={"board_key": resolved_board_key, "job_key": job_key}
+            )
+            job_data = job_result.get("data") if isinstance(job_result.get("data"), dict) else None
+            if job_data:
+                raw_job_offer = job_data
+        except Exception as exc:
+            logger.warning("Could not fetch job offer during CV parse: %s", exc)
+
+    validation = hrflow_client.validate_profile(raw_profile)
+    if not validation["normalized_profile"].get("profile_text"):
+        raise HTTPException(status_code=400, detail="Parsed profile is missing usable interview context.")
+
+    normalized_profile = validation["normalized_profile"]
+    normalized_job_offer = hrflow_client.normalize_job(raw_job_offer) if raw_job_offer else None
+    candidate_brief = build_candidate_brief(normalized_profile, normalized_job_offer)
+    session = session_store.create_session(
+        raw_profile,
+        raw_job_offer,
+        normalized_profile,
+        normalized_job_offer,
+        candidate_brief,
+    )
+    return SessionCreateResponse(
+        session_id=session.session_id,
+        normalized_profile=session.normalized_profile,
+        candidate_brief=session.candidate_brief,
+        normalized_job_offer=session.normalized_job_offer,
+    )
+
+
 @app.post(
     "/stt",
     response_model=STTResponse,
