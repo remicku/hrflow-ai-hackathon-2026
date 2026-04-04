@@ -105,6 +105,14 @@ class AnswerResponse(BaseModel):
     )
 
 
+class GazeRequest(BaseModel):
+    """Client-side gaze tracking summary."""
+
+    events: list[dict[str, Any]] = Field(default_factory=list)
+    total_look_away_ms: int = Field(default=0)
+    look_away_count: int = Field(default=0)
+
+
 class TTSRequest(BaseModel):
     """Text-to-speech request payload."""
 
@@ -360,6 +368,26 @@ async def submit_answer(
     )
 
 
+@app.post(
+    "/sessions/{session_id}/gaze",
+    summary="Store gaze tracking summary",
+    tags=["Sessions"],
+)
+async def save_gaze(
+    session_id: str = Path(
+        ...,
+        description="Session identifier returned by `POST /sessions`.",
+    ),
+    payload: GazeRequest = ...,
+) -> dict[str, str]:
+    """Store client-side gaze tracking summary (look-away events) for a session."""
+    session = session_store.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+    session_store.save_gaze(session_id, payload.model_dump())
+    return {"status": "ok"}
+
+
 @app.get(
     "/sessions/{session_id}/report",
     summary="Get final interview report",
@@ -409,6 +437,11 @@ async def get_report(
         if isinstance(raw_job_reference, str) and raw_job_reference and raw_job_reference != "00000"
         else None
     )
+
+    # Attach client-side gaze data if available
+    gaze_session = session_store.get_session(session_id)
+    if gaze_session and gaze_session.gaze_summary:
+        report["gaze_summary"] = gaze_session.gaze_summary
 
     report["hrflow_profile_job_grade"] = await hrflow_client.grade_profile_for_job(
         source_key=source_key,

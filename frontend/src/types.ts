@@ -122,6 +122,19 @@ export interface StartResponse {
   audio_base64: string | null;
 }
 
+export interface GazeEvent {
+  timestamp: number;
+  duration_ms: number;
+  question_index: number;
+  reason: 'look_away' | 'no_face';
+}
+
+export interface GazeSummary {
+  events: GazeEvent[];
+  total_look_away_ms: number;
+  look_away_count: number;
+}
+
 export interface Report {
   session_id: string;
   candidate_summary: CandidateBrief;
@@ -136,4 +149,5 @@ export interface Report {
   strengths: string[];
   concerns: string[];
   final_summary: string;
+  gaze_summary?: GazeSummary | null;
 }

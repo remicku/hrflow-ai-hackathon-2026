@@ -5,8 +5,9 @@ import {
 } from 'lucide-react';
 import Avatar from '../components/Avatar';
 import Webcam from '../components/Webcam';
-import { startInterview, submitAnswer, getReport, textToSpeech, playAudio } from '../api';
+import { startInterview, submitAnswer, getReport, textToSpeech, playAudio, submitGazeSummary } from '../api';
 import { useElevenLabsSTT } from '../hooks/useElevenLabsSTT';
+import { useGazeTracking } from '../hooks/useGazeTracking';
 import type { SessionData, Question, Evaluation, Report } from '../types';
 
 type InterviewState =
@@ -51,6 +52,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [manualText, setManualText] = useState('');
   const [useManualInput, setUseManualInput] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const allQuestionsRef = useRef<Question[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioEnabledRef = useRef(audioEnabled);
@@ -58,6 +60,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
 
   // Ref to always call the latest handleSubmit from the silence callback
   const handleSubmitRef = useRef<() => Promise<void>>(async () => {});
+
+  const { isLookingAway, getSummary } = useGazeTracking(videoRef, currentIndex);
 
   const {
     transcript,
@@ -191,6 +195,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     if (res.interview_completed || !res.next_question) {
       setState('fetching_report');
       try {
+        await submitGazeSummary(sessionId, getSummary());
         const report = await getReport(sessionId);
         onComplete(report);
       } catch (e) {
@@ -206,7 +211,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
       setEvaluation(null);
       await speakQuestion(next);
     }
-  }, [sessionId, resetTranscript, speakQuestion, onComplete]);
+  }, [sessionId, resetTranscript, speakQuestion, onComplete, getSummary]);
 
   // Auto-start recording as soon as the interviewer finishes speaking
   const prevStateRef = useRef<InterviewState | null>(null);
@@ -422,7 +427,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
 
           {/* Webcam tile */}
           <div className="h-[300px] shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-slate-900 shadow-sm relative">
-            <Webcam />
+            <Webcam videoRef={videoRef} isLookingAway={isLookingAway} />
             <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-md">
               <span className="text-white text-xs font-medium">{candidateName}</span>
             </div>
