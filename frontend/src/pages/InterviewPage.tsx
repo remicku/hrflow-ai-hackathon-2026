@@ -318,6 +318,17 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
           </span>
         </div>
 
+        {/* Gaze warning */}
+        {isLookingAway && (
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
+            <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Regardez la caméra
+          </div>
+        )}
+
         {/* Progress dots */}
         <div className="flex items-center gap-2">
           {Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => (
@@ -425,13 +436,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
             )}
           </div>
 
-          {/* Webcam tile */}
-          <div className="h-[300px] shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-slate-900 shadow-sm relative">
-            <Webcam videoRef={videoRef} isLookingAway={isLookingAway} />
-            <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-md">
-              <span className="text-white text-xs font-medium">{candidateName}</span>
-            </div>
-          </div>
+          <Webcam videoRef={videoRef} />
         </div>
       </div>
 
