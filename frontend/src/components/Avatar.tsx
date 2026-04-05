@@ -11,7 +11,7 @@ interface AvatarProps {
   name?: string;
 }
 
-export default function Avatar({ state, name = 'InterviewAI' }: AvatarProps) {
+export default function Avatar({ state, name = 'Remi AI' }: AvatarProps) {
   const lottieRef = useRef<LottieRefCurrentProps>(null);
   const isSpeaking = state === 'speaking';
   const isListening = state === 'listening';
