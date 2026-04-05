@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   CheckCircle2, AlertTriangle, XCircle, TrendingUp, RotateCcw,
-  Download, BrainCircuit, ThumbsUp, ThumbsDown, Eye,
+  Download, BrainCircuit, ThumbsUp, ThumbsDown, Eye, ChevronDown, MessageSquare,
 } from 'lucide-react';
 import { ScoreCircle, ScoreBar } from '../components/ScoreBar';
 import type { Report } from '../types';
@@ -92,6 +92,36 @@ function handlePrint() {
   window.print();
 }
 
+function TranscriptAccordion({ questionText, transcript }: { questionText?: string; transcript?: string }) {
+  const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  if (!transcript) return null;
+
+  return (
+    <div className="mt-4 border-t border-slate-100 pt-3">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600 transition-colors w-full text-left"
+      >
+        <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+        <span className="font-medium">Réponse du candidat</span>
+        <ChevronDown className={`w-3.5 h-3.5 ml-auto transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div ref={contentRef} className="mt-3 space-y-2">
+          {questionText && (
+            <p className="text-xs text-slate-400 italic border-l-2 border-slate-200 pl-3">{questionText}</p>
+          )}
+          <p className="text-sm text-slate-600 bg-slate-50 rounded-lg px-4 py-3 leading-relaxed">
+            {transcript}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ReportPage({ report, candidateName, onRestart, backLabel }: ReportPageProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'questions'>('overview');
   const rec = REC_CONFIG[report.recommendation] ?? REC_CONFIG.mixed;
@@ -146,11 +176,23 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
               <BrainCircuit className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-slate-900">InterviewAI</span>
+            <span className="font-bold text-slate-900">Remi AI</span>
             <span className="text-slate-300">/</span>
             <span className="text-slate-500 text-sm">Interview Report</span>
           </div>
           <div className="flex items-center gap-3">
+            {report.cv_url && (
+              <a
+                href={report.cv_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100 hover:border-indigo-300 text-sm font-medium transition-all"
+              >
+                <Download className="w-4 h-4" />
+                CV du candidat
+              </a>
+            )}
             <button
               onClick={handlePrint}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 text-sm transition-all"
@@ -419,6 +461,8 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                 </div>
 
                 <p className="text-slate-500 text-sm mb-4 italic">{ev.rationale}</p>
+
+                <TranscriptAccordion questionText={ev.question_text} transcript={ev.transcript} />
 
                 {/* Subscores */}
                 <div className="grid sm:grid-cols-2 gap-3 mb-4">

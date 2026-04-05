@@ -108,6 +108,8 @@ export interface Evaluation {
   strengths: string[];
   concerns: string[];
   rationale: string;
+  transcript?: string;
+  question_text?: string;
 }
 
 export interface AnswerResponse {
@@ -150,4 +152,5 @@ export interface Report {
   concerns: string[];
   final_summary: string;
   gaze_summary?: GazeSummary | null;
+  cv_url?: string | null;
 }
