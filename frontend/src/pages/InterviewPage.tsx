@@ -97,7 +97,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     [],
   );
 
-  // Load first question on mount
+  // Load first question on mount (use prefetched data if available)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -284,6 +284,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
 
   // --- Evaluated state: simple confirmation, no scores shown to candidate ---
   if (state === 'evaluated' && evaluation) {
+    const nextQuestion = lastAnswerRes.current?.next_question;
+    const nextIsEnglish = nextQuestion?.category === 'language_proficiency';
     return (
       <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6 animate-fade-in text-center px-4">
@@ -291,6 +293,12 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
             <ChevronRight className="w-8 h-8 text-emerald-600" />
           </div>
           <p className="text-slate-600 text-lg font-medium">Réponse enregistrée</p>
+          {nextIsEnglish && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 max-w-sm">
+              <p className="text-amber-700 text-sm font-semibold mb-1">La prochaine question est en anglais</p>
+              <p className="text-amber-600 text-xs">Vous devrez répondre en anglais. Prenez un moment pour vous préparer.</p>
+            </div>
+          )}
           <button
             onClick={handleNextQuestion}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-2"
@@ -353,7 +361,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
         <div className="flex-1 md:flex-[2] rounded-xl overflow-hidden border border-slate-200 bg-white flex flex-col min-h-0 shadow-sm">
           {/* Avatar area */}
           <div className="flex-1 min-h-0">
-            <Avatar state={avatarState} name="InterviewAI" />
+            <Avatar state={avatarState} name="Remi AI" />
           </div>
 
           {/* Question subtitle bar */}
