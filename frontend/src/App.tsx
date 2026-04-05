@@ -6,15 +6,23 @@ import CompletionPage from './pages/CompletionPage';
 import HRDashboard from './pages/HRDashboard';
 import type { AppPage, SessionData, Report } from './types';
 
+function hasInterviewParams() {
+  const params = new URLSearchParams(window.location.search);
+  const sourceKey = params.get('source_key');
+  const profileKey = params.get('profile_key');
+  const reference = params.get('reference');
+  return Boolean(sourceKey && (profileKey || reference));
+}
+
 export default function App() {
-  const [page, setPage] = useState<AppPage>('landing');
+  const [page, setPage] = useState<AppPage>(hasInterviewParams() ? 'landing' : 'hr_dashboard');
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [report, setReport] = useState<Report | null>(null);
 
   const handleRestart = () => {
     setSessionData(null);
     setReport(null);
-    setPage('landing');
+    setPage('hr_dashboard');
   };
 
   return (
