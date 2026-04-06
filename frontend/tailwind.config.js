@@ -30,8 +30,8 @@ export default {
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
         glow: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.4)' },
-          '50%': { boxShadow: '0 0 40px rgba(99, 102, 241, 0.8)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)' },
+          '50%': { boxShadow: '0 0 40px rgba(59, 130, 246, 0.8)' },
         },
       },
     },

@@ -264,7 +264,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     return (
       <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 animate-fade-in">
-          <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
           <p className="text-slate-500">Connecting to interview...</p>
         </div>
       </div>
@@ -275,7 +275,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     return (
       <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 animate-fade-in">
-          <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
           <p className="text-slate-500">Generating your report...</p>
         </div>
       </div>
@@ -321,7 +321,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-slate-600 text-sm font-medium">Interview in progress</span>
           <span className="text-slate-300 text-sm">|</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-600">
             Q{currentIndex + 1}/{TOTAL_QUESTIONS} — {currentQuestion ? (CATEGORY_LABELS[currentQuestion.category] || currentQuestion.category) : ''}
           </span>
         </div>
@@ -346,7 +346,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 i < currentIndex
                   ? 'w-5 bg-emerald-500'
                   : i === currentIndex
-                  ? 'w-5 bg-indigo-500 animate-pulse'
+                  ? 'w-5 bg-blue-500 animate-pulse'
                   : 'w-1.5 bg-slate-300'
               }`}
             />
@@ -403,8 +403,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                     )}
                     {isTranscribing && (
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                        <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" />
-                        <span className="text-xs text-indigo-500">Transcribing...</span>
+                        <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />
+                        <span className="text-xs text-blue-500">Transcribing...</span>
                       </div>
                     )}
                     <p className="text-slate-700 text-sm leading-relaxed">
@@ -417,7 +417,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                   </div>
                 ) : (
                   <textarea
-                    className="flex-1 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 text-sm resize-none focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-slate-400 min-h-[80px]"
+                    className="flex-1 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 text-sm resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-slate-400 min-h-[80px]"
                     placeholder="Type your answer..."
                     value={manualText}
                     onChange={(e) => setManualText(e.target.value)}
@@ -460,7 +460,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200
                 ${isListening
                   ? 'bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-500/30 scale-105'
-                  : 'bg-slate-200 hover:bg-slate-300'
+                  : 'bg-slate-100 hover:bg-slate-200'
                 }
               `}
               title={isListening ? 'Stop recording' : 'Start recording'}
@@ -483,7 +483,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 (!useManualInput && !activeTranscript && !isListening) ||
                 (useManualInput && !manualText.trim())
               }
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 disabled:shadow-none"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-400 hover:to-blue-600 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-blue-800/20 disabled:shadow-none"
             >
               {state === 'submitting' ? (
                 <>
@@ -519,7 +519,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
               }
             }}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-              audioEnabled ? 'bg-slate-200 hover:bg-slate-300' : 'bg-rose-600 hover:bg-rose-500'
+              audioEnabled ? 'bg-slate-100 hover:bg-slate-200' : 'bg-rose-600 hover:bg-rose-500'
             }`}
             title={audioEnabled ? 'Mute audio' : 'Enable audio'}
           >

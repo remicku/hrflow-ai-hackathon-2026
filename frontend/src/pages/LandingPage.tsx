@@ -57,14 +57,14 @@ export default function LandingPage({ onSessionCreated, onOpenHR }: LandingPageP
       <header className="border-b border-slate-200 px-8 py-5 shrink-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
               <BrainCircuit className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-lg text-slate-900">Remi AI</span>
           </div>
           <button
             onClick={onOpenHR}
-            className="flex items-center gap-2 text-sm text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-4 py-2 rounded-xl shadow-md transition-all font-medium"
+            className="flex items-center gap-2 text-sm text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-400 hover:to-blue-600 px-4 py-2 rounded-xl shadow-md transition-all font-medium"
           >
             <Users className="w-4 h-4" />
             Tableau de bord RH
@@ -80,7 +80,7 @@ export default function LandingPage({ onSessionCreated, onOpenHR }: LandingPageP
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4 animate-fade-in">
-            <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
+            <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
             <p className="text-slate-500">{loadingStep}</p>
           </div>
         )}

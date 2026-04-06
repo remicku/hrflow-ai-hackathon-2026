@@ -137,8 +137,8 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden">
       {/* Background gradient orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-violet-200/40 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-200/30 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-blue-200/25 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-blue-100/30 blur-3xl" />
       </div>
 
       <div className="relative">
@@ -155,7 +155,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
               </button>
               <div className="w-px h-5 bg-slate-200" />
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
                   <BrainCircuit className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -178,7 +178,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
         {/* Page title */}
         <section className="max-w-6xl mx-auto px-8 pt-10 pb-6">
           <div className="flex items-center gap-3 mb-2">
-            <Users className="w-6 h-6 text-violet-600" />
+            <Users className="w-6 h-6 text-blue-600" />
             <h1 className="text-2xl font-bold text-slate-900">Entretiens réalisés</h1>
           </div>
           <p className="text-slate-500 text-sm">
@@ -194,7 +194,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                 {
                   label: 'Total entretiens',
                   value: interviews.length,
-                  icon: <BarChart3 className="w-4 h-4 text-indigo-500" />,
+                  icon: <BarChart3 className="w-4 h-4 text-blue-500" />,
                 },
                 {
                   label: 'Strong Hire',
@@ -278,7 +278,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                       onClick={() => handleSort(field)}
                       className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${
                         active
-                          ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                          ? 'bg-blue-50 border-blue-300 text-blue-700'
                           : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
                       }`}
                     >
@@ -298,10 +298,10 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                     key={interview.session_id}
                     onClick={() => handleOpenReport(interview)}
                     disabled={loadingReport !== null}
-                    className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all duration-150 p-5 flex items-center gap-5 disabled:opacity-60 disabled:cursor-wait group"
+                    className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-150 p-5 flex items-center gap-5 disabled:opacity-60 disabled:cursor-wait group"
                   >
                     {/* Avatar initials */}
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
                       {interview.candidate_name
                         .split(' ')
                         .map((n) => n[0])
@@ -339,7 +339,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                       {isLoadingThis ? (
                         <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                       )}
                     </div>
                   </button>
