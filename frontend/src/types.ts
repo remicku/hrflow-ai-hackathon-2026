@@ -84,7 +84,8 @@ export interface Question {
     | 'experience_validation'
     | 'skill_validation'
     | 'situational_or_technical'
-    | 'projection_motivation';
+    | 'projection_motivation'
+    | 'language_proficiency';
   question: string;
   why_it_matters: string;
   expected_signals: string[];
