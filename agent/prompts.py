@@ -99,11 +99,12 @@ def build_final_report_prompt(
 ) -> str:
     """Build an optional prompt for final report synthesis."""
     return (
-        "Synthesize a final recruiter-ready JSON report from the interview results. "
-        "Return valid JSON only and keep all claims grounded in the evidence. "
-        "The summary must evaluate the candidate specifically against the target job, not in isolation. "
-        "Reflect both strengths and risks relative to the role requirements.\n"
-        f"Candidate brief: {json.dumps(candidate_brief, ensure_ascii=True)}\n"
-        f"Evaluations: {json.dumps(evaluations, ensure_ascii=True)}\n"
-        f"Metrics: {json.dumps(overall_metrics, ensure_ascii=True)}"
+        "Synthétise un rapport final JSON prêt pour le recruteur à partir des résultats d'entretien. "
+        "Retourne uniquement du JSON valide et fonde chaque affirmation sur les preuves concrètes. "
+        "Le résumé doit évaluer le candidat spécifiquement par rapport au poste cible, pas de manière isolée. "
+        "Reflète à la fois les points forts et les risques par rapport aux exigences du poste. "
+        "Tous les textes (résumé, points forts, points d'attention, justifications) doivent être rédigés en français.\n"
+        f"Résumé candidat : {json.dumps(candidate_brief, ensure_ascii=True)}\n"
+        f"Évaluations : {json.dumps(evaluations, ensure_ascii=True)}\n"
+        f"Métriques : {json.dumps(overall_metrics, ensure_ascii=True)}"
     )

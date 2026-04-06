@@ -28,8 +28,8 @@ class ReportBuilder:
                 "job_alignment_score": 0.0,
                 "recommendation": "insufficient_data",
                 "strengths": [],
-                "concerns": ["No interview answers were recorded."],
-                "final_summary": "The interview session did not capture enough answers to produce a hiring recommendation.",
+                "concerns": ["Aucune réponse d'entretien n'a été enregistrée."],
+                "final_summary": "La session d'entretien n'a pas capturé suffisamment de réponses pour produire une recommandation de recrutement.",
             }
 
         overall_score = round(mean(item["normalized_score"] for item in evaluations), 1)
@@ -90,12 +90,20 @@ class ReportBuilder:
         concerns: list[str],
         recommendation: str,
     ) -> str:
-        name = candidate_brief.get("candidate_name") or "The candidate"
-        title = candidate_brief.get("current_title") or "their recent role"
-        target_role = (candidate_brief.get("target_job") or {}).get("target_role") or "the target role"
-        strengths_text = "; ".join(strengths[:2]) if strengths else "limited evidence collected"
-        concerns_text = "; ".join(concerns[:2]) if concerns else "no major concerns surfaced"
+        name = candidate_brief.get("candidate_name") or "Le candidat"
+        title = candidate_brief.get("current_title") or "son poste actuel"
+        target_role = (candidate_brief.get("target_job") or {}).get("target_role") or "le poste cible"
+        strengths_text = "; ".join(strengths[:2]) if strengths else "peu d'éléments probants recueillis"
+        concerns_text = "; ".join(concerns[:2]) if concerns else "aucun point d'attention majeur"
+        rec_labels = {
+            "strong_yes": "Vivement recommandé",
+            "yes": "Recommandé",
+            "mixed": "Mitigé",
+            "no": "Non recommandé",
+        }
+        rec_label = rec_labels.get(recommendation, recommendation)
         return (
-            f"{name} interviewed from a {title} background for {target_role} and received an overall score of {overall_score}/100. "
-            f"Recommendation: {recommendation}. Key strengths: {strengths_text}. Key concerns: {concerns_text}."
+            f"{name} a passé un entretien depuis un profil de {title} pour le poste de {target_role} "
+            f"et a obtenu un score global de {overall_score}/100. "
+            f"Recommandation : {rec_label}. Points forts : {strengths_text}. Points d'attention : {concerns_text}."
         )

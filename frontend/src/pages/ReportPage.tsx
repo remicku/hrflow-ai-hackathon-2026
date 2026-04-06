@@ -23,25 +23,25 @@ const REC_CONFIG: Record<
   { label: string; color: string; icon: React.ReactNode; className: string }
 > = {
   strong_yes: {
-    label: 'Strong Hire',
+    label: 'Vivement recommandé',
     color: '#10b981',
     icon: <CheckCircle2 className="w-6 h-6" />,
     className: 'rec-strong-yes',
   },
   yes: {
-    label: 'Hire',
+    label: 'Recommandé',
     color: '#34d399',
     icon: <ThumbsUp className="w-6 h-6" />,
     className: 'rec-yes',
   },
   mixed: {
-    label: 'Mixed',
+    label: 'Mitigé',
     color: '#f59e0b',
     icon: <AlertTriangle className="w-6 h-6" />,
     className: 'rec-mixed',
   },
   no: {
-    label: 'No Hire',
+    label: 'Non recommandé',
     color: '#ef4444',
     icon: <ThumbsDown className="w-6 h-6" />,
     className: 'rec-no',
@@ -138,13 +138,13 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
       }, 0) / evals.length;
 
     return [
-      { subject: 'Relevance', value: Math.round(sum('relevance')) },
-      { subject: 'Specificity', value: Math.round(sum('specificity')) },
-      { subject: 'Consistency', value: Math.round(sum('consistency_with_profile')) },
-      { subject: 'Job Fit', value: Math.round(sum('job_alignment')) },
-      { subject: 'Clarity', value: Math.round(sum('clarity')) },
+      { subject: 'Pertinence', value: Math.round(sum('relevance')) },
+      { subject: 'Précision', value: Math.round(sum('specificity')) },
+      { subject: 'Cohérence', value: Math.round(sum('consistency_with_profile')) },
+      { subject: 'Adéquation', value: Math.round(sum('job_alignment')) },
+      { subject: 'Clarté', value: Math.round(sum('clarity')) },
       {
-        subject: 'Technical',
+        subject: 'Technique',
         value: Math.round(
           evals
             .filter((e) => e.subscores.technical_accuracy !== null)
@@ -178,7 +178,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
             </div>
             <span className="font-bold text-slate-900">Remi AI</span>
             <span className="text-slate-300">/</span>
-            <span className="text-slate-500 text-sm">Interview Report</span>
+            <span className="text-slate-500 text-sm">Rapport d'entretien</span>
           </div>
           <div className="flex items-center gap-3">
             {report.cv_url && (
@@ -198,58 +198,40 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 text-sm transition-all"
             >
               <Download className="w-4 h-4" />
-              Export PDF
+              Exporter en PDF
             </button>
             <button
               onClick={onRestart}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm transition-all"
             >
               <RotateCcw className="w-4 h-4" />
-              {backLabel ?? 'New Interview'}
+              {backLabel ?? 'Nouvel entretien'}
             </button>
           </div>
         </div>
 
         {/* Candidate header + recommendation */}
         <div className="glass-card rounded-2xl p-8 mb-8 animate-slide-up">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
-            {/* Candidate info */}
-            <div className="flex-1">
-              <p className="text-slate-400 text-sm mb-1">Interview Report</p>
+          {/* Top row: candidate info + recommendation badge */}
+          <div className="flex items-start gap-6 mb-6">
+            <div className="flex-1 min-w-0">
+              <p className="text-slate-400 text-sm mb-1">Rapport d'entretien</p>
               <h1 className="text-3xl font-bold text-slate-900 mb-1">{candidateName}</h1>
-              <p className="text-slate-500">{report.candidate_summary.current_title || 'Candidate'}</p>
+              <p className="text-slate-500">{report.candidate_summary.current_title || 'Candidat'}</p>
               {targetRole && (
-                <p className="text-slate-400 text-sm mt-1">Evaluated for: {targetRole}</p>
+                <p className="text-slate-400 text-sm mt-1">Évalué pour : {targetRole}</p>
               )}
               <div className="flex items-center gap-2 mt-3">
                 <span className="text-xs text-slate-400 capitalize">{report.candidate_summary.seniority}</span>
                 <span className="text-slate-300">·</span>
                 <span className="text-xs text-slate-400">
-                  {Math.round(report.candidate_summary.years_of_experience)} yrs exp
+                  {Math.round(report.candidate_summary.years_of_experience)} ans d'exp.
                 </span>
                 <span className="text-slate-300">·</span>
                 <span className="text-xs text-slate-400">
-                  {report.per_question_evaluations.length} questions answered
+                  {report.per_question_evaluations.length} questions répondues
                 </span>
               </div>
-            </div>
-
-            {/* Score circles */}
-            <div className="flex gap-6">
-              <ScoreCircle score={report.overall_score} size={100} label="Interview" />
-              {hrflowGrade !== null ? (
-                <ScoreCircle score={hrflowGrade} size={100} label="HRFlow Match" />
-              ) : (
-                <div className="flex flex-col items-center gap-2 justify-center">
-                  <div className="w-[100px] h-[100px] rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center px-4 text-center">
-                    <span className="text-xs text-slate-400">HRFlow score unavailable</span>
-                  </div>
-                  <span className="text-slate-500 text-sm">HRFlow Match</span>
-                </div>
-              )}
-              <ScoreCircle score={report.communication_score} size={80} label="Communication" />
-              <ScoreCircle score={report.technical_score} size={80} label="Technical" />
-              <ScoreCircle score={report.profile_consistency_score} size={80} label="Profile Fit" />
             </div>
 
             {/* Recommendation badge */}
@@ -257,8 +239,26 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               className={`px-6 py-4 rounded-xl ${rec.className} flex flex-col items-center gap-2 text-white shrink-0`}
             >
               {rec.icon}
-              <span className="font-bold text-lg">{rec.label}</span>
+              <span className="font-bold text-lg whitespace-nowrap">{rec.label}</span>
             </div>
+          </div>
+
+          {/* Score circles row */}
+          <div className="flex flex-wrap gap-6 justify-center border-t border-slate-100 pt-6">
+            <ScoreCircle score={report.overall_score} size={100} label="Entretien" />
+            {hrflowGrade !== null ? (
+              <ScoreCircle score={hrflowGrade} size={100} label="HRFlow" />
+            ) : (
+              <div className="flex flex-col items-center gap-2 justify-center">
+                <div className="w-[100px] h-[100px] rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center px-4 text-center">
+                  <span className="text-xs text-slate-400">Score HRFlow indisponible</span>
+                </div>
+                <span className="text-slate-500 text-sm">HRFlow</span>
+              </div>
+            )}
+            <ScoreCircle score={report.communication_score} size={80} label="Communication" />
+            <ScoreCircle score={report.technical_score} size={80} label="Technique" />
+            <ScoreCircle score={report.profile_consistency_score} size={80} label="Profil" />
           </div>
 
           {/* Summary */}
@@ -279,7 +279,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
-              {tab === 'overview' ? 'Overview' : 'Q&A Breakdown'}
+              {tab === 'overview' ? 'Vue d\'ensemble' : 'Détail des réponses'}
             </button>
           ))}
         </div>
@@ -292,7 +292,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               <div className="glass-card rounded-2xl p-6">
                 <h3 className="text-slate-900 font-semibold mb-6 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-blue-500" />
-                  Skill Dimension Scores
+                  Scores par dimension
                 </h3>
                 <ResponsiveContainer width="100%" height={280}>
                   <RadarChart data={avgSubscores} cx="50%" cy="50%" outerRadius="80%">
@@ -320,7 +320,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
 
               {/* Bar chart */}
               <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-slate-900 font-semibold mb-6">Per-Question Scores</h3>
+                <h3 className="text-slate-900 font-semibold mb-6">Scores par question</h3>
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={barData} barSize={32}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -350,10 +350,10 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               <div className="glass-card rounded-2xl p-6">
                 <h3 className="text-slate-900 font-semibold mb-4 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  Key Strengths
+                  Points forts
                 </h3>
                 {report.strengths.length === 0 ? (
-                  <p className="text-slate-400 text-sm">No strengths identified.</p>
+                  <p className="text-slate-400 text-sm">Aucun point fort identifié.</p>
                 ) : (
                   <ul className="space-y-3">
                     {report.strengths.map((s, i) => (
@@ -368,10 +368,10 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               <div className="glass-card rounded-2xl p-6">
                 <h3 className="text-slate-900 font-semibold mb-4 flex items-center gap-2">
                   <XCircle className="w-4 h-4 text-rose-500" />
-                  Areas of Concern
+                  Points d'attention
                 </h3>
                 {report.concerns.length === 0 ? (
-                  <p className="text-slate-400 text-sm">No major concerns identified.</p>
+                  <p className="text-slate-400 text-sm">Aucun point d'attention majeur identifié.</p>
                 ) : (
                   <ul className="space-y-3">
                     {report.concerns.map((c, i) => (
@@ -387,16 +387,16 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
 
             {/* Category scores */}
             <div className="glass-card rounded-2xl p-6">
-              <h3 className="text-slate-900 font-semibold mb-5">Category Scores</h3>
+              <h3 className="text-slate-900 font-semibold mb-5">Scores par catégorie</h3>
               <div className="grid sm:grid-cols-2 gap-4">
-                <ScoreBar label="Overall Score" value={report.overall_score} />
+                <ScoreBar label="Score global" value={report.overall_score} />
                 {hrflowGrade !== null && (
-                  <ScoreBar label="HRFlow Match Score" value={hrflowGrade} />
+                  <ScoreBar label="Score HRFlow" value={hrflowGrade} />
                 )}
                 <ScoreBar label="Communication" value={report.communication_score} />
-                <ScoreBar label="Technical Aptitude" value={report.technical_score} />
-                <ScoreBar label="Profile Consistency" value={report.profile_consistency_score} />
-                <ScoreBar label="Job Alignment" value={report.job_alignment_score} />
+                <ScoreBar label="Aptitude technique" value={report.technical_score} />
+                <ScoreBar label="Cohérence du profil" value={report.profile_consistency_score} />
+                <ScoreBar label="Adéquation au poste" value={report.job_alignment_score} />
               </div>
             </div>
 
@@ -466,13 +466,13 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
 
                 {/* Subscores */}
                 <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                  <ScoreBar label="Relevance" value={ev.subscores.relevance} />
-                  <ScoreBar label="Specificity" value={ev.subscores.specificity} />
-                  <ScoreBar label="Consistency" value={ev.subscores.consistency_with_profile} />
-                  <ScoreBar label="Job Alignment" value={ev.subscores.job_alignment} />
-                  <ScoreBar label="Clarity" value={ev.subscores.clarity} />
+                  <ScoreBar label="Pertinence" value={ev.subscores.relevance} />
+                  <ScoreBar label="Précision" value={ev.subscores.specificity} />
+                  <ScoreBar label="Cohérence" value={ev.subscores.consistency_with_profile} />
+                  <ScoreBar label="Adéquation au poste" value={ev.subscores.job_alignment} />
+                  <ScoreBar label="Clarté" value={ev.subscores.clarity} />
                   {ev.subscores.technical_accuracy !== null && (
-                    <ScoreBar label="Technical Accuracy" value={ev.subscores.technical_accuracy} />
+                    <ScoreBar label="Précision technique" value={ev.subscores.technical_accuracy} />
                   )}
                 </div>
 
@@ -481,7 +481,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                   <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-200">
                     {ev.strengths.length > 0 && (
                       <div className="flex-1">
-                        <p className="text-emerald-600 text-xs font-semibold mb-1.5 uppercase tracking-wider">Strengths</p>
+                        <p className="text-emerald-600 text-xs font-semibold mb-1.5 uppercase tracking-wider">Points forts</p>
                         <ul className="space-y-1">
                           {ev.strengths.map((s, i) => (
                             <li key={i} className="text-slate-500 text-xs flex gap-2">
@@ -493,7 +493,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                     )}
                     {ev.concerns.length > 0 && (
                       <div className="flex-1">
-                        <p className="text-amber-600 text-xs font-semibold mb-1.5 uppercase tracking-wider">Concerns</p>
+                        <p className="text-amber-600 text-xs font-semibold mb-1.5 uppercase tracking-wider">Points d'attention</p>
                         <ul className="space-y-1">
                           {ev.concerns.map((c, i) => (
                             <li key={i} className="text-slate-500 text-xs flex gap-2">
