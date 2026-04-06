@@ -99,7 +99,7 @@ function TranscriptAccordion({ questionText, transcript }: { questionText?: stri
   if (!transcript) return null;
 
   return (
-    <div className="mt-4 border-t border-slate-100 pt-3">
+    <div className="mt-4 border-t border-slate-200 pt-3">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600 transition-colors w-full text-left"
@@ -165,15 +165,15 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden print:bg-white print:text-black">
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden print:hidden">
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full bg-indigo-200/30 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-violet-200/30 blur-3xl" />
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full bg-blue-200/20 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-100/30 blur-3xl" />
       </div>
 
       <div className="relative max-w-5xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="flex items-center justify-between mb-10 print:hidden">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
               <BrainCircuit className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-slate-900">Remi AI</span>
@@ -187,7 +187,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                 target="_blank"
                 rel="noopener noreferrer"
                 download
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100 hover:border-indigo-300 text-sm font-medium transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300 text-sm font-medium transition-all"
               >
                 <Download className="w-4 h-4" />
                 CV du candidat
@@ -275,7 +275,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all capitalize ${
                 activeTab === tab
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
@@ -291,7 +291,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               {/* Radar chart */}
               <div className="glass-card rounded-2xl p-6">
                 <h3 className="text-slate-900 font-semibold mb-6 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-indigo-500" />
+                  <TrendingUp className="w-4 h-4 text-blue-500" />
                   Skill Dimension Scores
                 </h3>
                 <ResponsiveContainer width="100%" height={280}>
@@ -309,8 +309,8 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                     <Radar
                       name="Score"
                       dataKey="value"
-                      stroke="#6366f1"
-                      fill="#6366f1"
+                      stroke="#1C5289"
+                      fill="#1C5289"
                       fillOpacity={0.15}
                       strokeWidth={2}
                     />
@@ -328,7 +328,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
                     <YAxis domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#ffffff',
+                        backgroundColor: '#f8fafc',
                         border: '1px solid #e2e8f0',
                         borderRadius: '8px',
                         color: '#1e293b',
@@ -442,7 +442,7 @@ export default function ReportPage({ report, candidateName, onRestart, backLabel
               <div key={ev.question_id} className="glass-card rounded-2xl p-6">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-sm font-bold text-indigo-600 shrink-0">
+                    <span className="w-8 h-8 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-sm font-bold text-blue-600 shrink-0">
                       {idx + 1}
                     </span>
                     <span className="text-xs text-slate-400 uppercase tracking-wider">

@@ -9,8 +9,8 @@ interface BriefingPageProps {
 
 const SENIORITY_COLOR: Record<string, string> = {
   junior: 'text-sky-600 bg-sky-50 border-sky-200',
-  mid: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-  senior: 'text-violet-600 bg-violet-50 border-violet-200',
+  mid: 'text-blue-600 bg-blue-50 border-blue-200',
+  senior: 'text-blue-700 bg-blue-100 border-blue-300',
 };
 
 const INTERVIEW_STEPS = [
@@ -67,14 +67,14 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden">
       {/* Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-indigo-200/30 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-violet-200/30 blur-3xl" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-blue-200/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-blue-100/30 blur-3xl" />
       </div>
 
       <div className="relative max-w-4xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="flex items-center gap-3 mb-12">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
             <BrainCircuit className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-slate-900">Remi AI</span>
@@ -88,7 +88,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
             {/* Profile card */}
             <div className="glass-card rounded-2xl p-6">
               <div className="flex items-start gap-5">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-xl font-bold text-white shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-xl font-bold text-white shrink-0">
                   {initials}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -131,7 +131,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
                   {brief.top_skills.slice(0, 8).map((skill) => (
                     <span
                       key={skill}
-                      className="px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-600 text-sm rounded-lg font-medium"
+                      className="px-3 py-1 bg-blue-50 border border-blue-200 text-blue-600 text-sm rounded-lg font-medium"
                     >
                       {skill}
                     </span>
@@ -170,7 +170,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
                         {(jobOffer?.top_skills ?? targetJob?.target_skills ?? []).map((skill) => (
                           <span
                             key={skill}
-                            className="px-2.5 py-1 bg-violet-50 border border-violet-200 text-violet-600 text-xs rounded-lg font-medium"
+                            className="px-2.5 py-1 bg-blue-100 border border-blue-300 text-blue-700 text-xs rounded-lg font-medium"
                           >
                             {skill}
                           </span>
@@ -188,7 +188,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
                       <ul className="space-y-1.5">
                         {targetJob.key_requirements.slice(0, 4).map((req, i) => (
                           <li key={i} className="text-slate-600 text-sm flex items-start gap-2">
-                            <span className="text-violet-400 mt-0.5 shrink-0">•</span>
+                            <span className="text-blue-400 mt-0.5 shrink-0">•</span>
                             {req}
                           </li>
                         ))}
@@ -210,7 +210,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
                   {profile.experiences.slice(0, 3).map((exp, i) => (
                     <div key={i} className="flex gap-4">
                       <div className="flex flex-col items-center pt-1">
-                        <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                        <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                         {i < Math.min(profile.experiences.length, 3) - 1 && (
                           <div className="w-px flex-1 bg-slate-200 mt-2" />
                         )}
@@ -234,7 +234,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
             {/* Interview structure */}
             <div className="glass-card rounded-2xl p-6">
               <div className="flex items-center gap-2 mb-5">
-                <Star className="w-4 h-4 text-indigo-500" />
+                <Star className="w-4 h-4 text-blue-500" />
                 <p className="text-slate-900 font-semibold">Déroulé de l'entretien</p>
               </div>
               <div className="space-y-3">
@@ -296,7 +296,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
               onClick={onStart}
               disabled={permissions.microphone === 'denied'}
               title={permissions.microphone === 'denied' ? 'Accès au microphone requis' : undefined}
-              className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-base transition-all duration-200 shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-3 group"
+              className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-400 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-base transition-all duration-200 shadow-lg shadow-blue-800/20 flex items-center justify-center gap-3 group"
             >
               Commencer l'entretien
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
