@@ -17,22 +17,22 @@ const REC_CONFIG: Record<
   { label: string; icon: React.ReactNode; badgeClass: string }
 > = {
   strong_yes: {
-    label: 'Strong Hire',
+    label: 'Vivement recommandé',
     icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   },
   yes: {
-    label: 'Hire',
+    label: 'Recommandé',
     icon: <ThumbsUp className="w-3.5 h-3.5" />,
     badgeClass: 'bg-green-100 text-green-700 border-green-200',
   },
   mixed: {
-    label: 'Mixed',
+    label: 'Mitigé',
     icon: <AlertTriangle className="w-3.5 h-3.5" />,
     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
   },
   no: {
-    label: 'No Hire',
+    label: 'Non recommandé',
     icon: <ThumbsDown className="w-3.5 h-3.5" />,
     badgeClass: 'bg-rose-100 text-rose-700 border-rose-200',
   },
@@ -99,7 +99,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
       const data = await listInterviews();
       setInterviews(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load interviews.');
+      setError(err instanceof Error ? err.message : 'Impossible de charger les entretiens.');
     } finally {
       setLoading(false);
     }
@@ -116,7 +116,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
       setSelectedName(interview.candidate_name);
       setSelectedReport(report);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load report.');
+      setError(err instanceof Error ? err.message : 'Impossible de charger le rapport.');
     } finally {
       setLoadingReport(null);
     }
@@ -197,12 +197,12 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                   icon: <BarChart3 className="w-4 h-4 text-blue-500" />,
                 },
                 {
-                  label: 'Strong Hire',
+                  label: 'Vivement recommandé',
                   value: interviews.filter((i) => i.recommendation === 'strong_yes').length,
                   icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
                 },
                 {
-                  label: 'Hire',
+                  label: 'Recommandé',
                   value: interviews.filter((i) => i.recommendation === 'yes').length,
                   icon: <ThumbsUp className="w-4 h-4 text-green-500" />,
                 },
@@ -312,7 +312,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
 
                     {/* Main info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-semibold text-slate-900 truncate">
                           {interview.candidate_name}
                         </span>
