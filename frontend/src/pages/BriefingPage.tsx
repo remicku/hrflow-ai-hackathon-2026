@@ -79,7 +79,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
           </div>
           <span className="font-bold text-slate-900">Remi AI</span>
           <span className="text-slate-300">/</span>
-          <span className="text-slate-500 text-sm">Candidate Briefing</span>
+          <span className="text-slate-500 text-sm">Briefing candidat</span>
         </div>
 
         <div className="grid lg:grid-cols-[1fr_380px] gap-8">
@@ -95,7 +95,7 @@ export default function BriefingPage({ sessionData, onStart }: BriefingPageProps
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h1 className="text-xl font-bold text-slate-900">{brief.candidate_name}</h1>
-                      <p className="text-slate-500 text-sm mt-0.5">{brief.current_title || 'No title provided'}</p>
+                      <p className="text-slate-500 text-sm mt-0.5">{brief.current_title || 'Titre non renseigné'}</p>
                     </div>
                     <span
                       className={`inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full border capitalize ${SENIORITY_COLOR[brief.seniority] ?? 'text-slate-500 bg-slate-100 border-slate-200'}`}
