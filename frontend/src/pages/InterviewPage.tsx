@@ -22,9 +22,9 @@ type InterviewState =
 
 const CATEGORY_LABELS: Record<string, string> = {
   intro_synthesis: 'Introduction',
-  experience_validation: 'Experience',
-  skill_validation: 'Technical Skills',
-  situational_or_technical: 'Situational',
+  experience_validation: 'Expérience',
+  skill_validation: 'Compétences techniques',
+  situational_or_technical: 'Situationnel',
   projection_motivation: 'Motivation',
 };
 
@@ -97,7 +97,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     [],
   );
 
-  // Load first question on mount
+  // Load first question on mount (use prefetched data if available)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -126,7 +126,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
         setState('ready_to_record');
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : 'Failed to start interview');
+          setError(e instanceof Error ? e.message : "Impossible de démarrer l'entretien");
           setState('error');
         }
       }
@@ -170,7 +170,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
       lastAnswerRes.current = { interview_completed: res.interview_completed, next_question: res.next_question };
       setState('evaluated');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to submit answer');
+      setError(e instanceof Error ? e.message : 'Impossible de soumettre la réponse');
       setState('error');
     }
   }, [
@@ -199,7 +199,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
         const report = await getReport(sessionId);
         onComplete(report);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to fetch report');
+        setError(e instanceof Error ? e.message : 'Impossible de récupérer le rapport');
         setState('error');
       }
     } else {
@@ -253,7 +253,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
             className="px-6 py-2 bg-rose-600 hover:bg-rose-500 rounded-lg text-sm text-white"
             onClick={() => window.location.reload()}
           >
-            Restart
+            Redémarrer
           </button>
         </div>
       </div>
@@ -264,8 +264,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     return (
       <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 animate-fade-in">
-          <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
-          <p className="text-slate-500">Connecting to interview...</p>
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+          <p className="text-slate-500">Connexion à l'entretien...</p>
         </div>
       </div>
     );
@@ -275,8 +275,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
     return (
       <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 animate-fade-in">
-          <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
-          <p className="text-slate-500">Generating your report...</p>
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+          <p className="text-slate-500">Génération de votre rapport...</p>
         </div>
       </div>
     );
@@ -284,6 +284,8 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
 
   // --- Evaluated state: simple confirmation, no scores shown to candidate ---
   if (state === 'evaluated' && evaluation) {
+    const nextQuestion = lastAnswerRes.current?.next_question;
+    const nextIsEnglish = nextQuestion?.category === 'language_proficiency';
     return (
       <div className="h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6 animate-fade-in text-center px-4">
@@ -291,6 +293,12 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
             <ChevronRight className="w-8 h-8 text-emerald-600" />
           </div>
           <p className="text-slate-600 text-lg font-medium">Réponse enregistrée</p>
+          {nextIsEnglish && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 max-w-sm">
+              <p className="text-amber-700 text-sm font-semibold mb-1">La prochaine question est en anglais</p>
+              <p className="text-amber-600 text-xs">Vous devrez répondre en anglais. Prenez un moment pour vous préparer.</p>
+            </div>
+          )}
           <button
             onClick={handleNextQuestion}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-2"
@@ -311,9 +319,9 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
       <header className="relative bg-white/80 backdrop-blur-sm border-b border-slate-200 px-4 py-2 flex items-center justify-between shrink-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-slate-600 text-sm font-medium">Interview in progress</span>
+          <span className="text-slate-600 text-sm font-medium">Entretien en cours</span>
           <span className="text-slate-300 text-sm">|</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-600">
             Q{currentIndex + 1}/{TOTAL_QUESTIONS} — {currentQuestion ? (CATEGORY_LABELS[currentQuestion.category] || currentQuestion.category) : ''}
           </span>
         </div>
@@ -338,7 +346,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 i < currentIndex
                   ? 'w-5 bg-emerald-500'
                   : i === currentIndex
-                  ? 'w-5 bg-indigo-500 animate-pulse'
+                  ? 'w-5 bg-blue-500 animate-pulse'
                   : 'w-1.5 bg-slate-300'
               }`}
             />
@@ -353,7 +361,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
         <div className="flex-1 md:flex-[2] rounded-xl overflow-hidden border border-slate-200 bg-white flex flex-col min-h-0 shadow-sm">
           {/* Avatar area */}
           <div className="flex-1 min-h-0">
-            <Avatar state={avatarState} name="InterviewAI" />
+            <Avatar state={avatarState} name="Remi AI" />
           </div>
 
           {/* Question subtitle bar */}
@@ -364,7 +372,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
               </p>
               {state === 'ready_to_record' && Array.isArray(currentQuestion.expected_signals) && currentQuestion.expected_signals.length > 0 && (
                 <p className="text-slate-400 text-xs text-center mt-1">
-                  Tip: {currentQuestion.expected_signals.slice(0, 2).join(', ')}
+                  Conseil : {currentQuestion.expected_signals.slice(0, 2).join(', ')}
                 </p>
               )}
             </div>
@@ -380,7 +388,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
               <div className="w-full h-full flex flex-col p-3">
                 {!speechSupported && !useManualInput && (
                   <p className="text-amber-600 text-xs text-center mb-2">
-                    Speech recognition not supported. Use text input.
+                    Reconnaissance vocale non supportée. Utilisez la saisie texte.
                   </p>
                 )}
 
@@ -395,22 +403,22 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                     )}
                     {isTranscribing && (
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                        <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" />
-                        <span className="text-xs text-indigo-500">Transcribing...</span>
+                        <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />
+                        <span className="text-xs text-blue-500">Transcription...</span>
                       </div>
                     )}
                     <p className="text-slate-700 text-sm leading-relaxed">
                       {activeTranscript || (
                         <span className="text-slate-400 italic text-xs">
-                          {isListening ? 'Speak now...' : isTranscribing ? 'Processing...' : 'Your answer will appear here'}
+                          {isListening ? 'Parlez maintenant...' : isTranscribing ? 'Traitement...' : 'Votre réponse apparaîtra ici'}
                         </span>
                       )}
                     </p>
                   </div>
                 ) : (
                   <textarea
-                    className="flex-1 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 text-sm resize-none focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-slate-400 min-h-[80px]"
-                    placeholder="Type your answer..."
+                    className="flex-1 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 text-sm resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-slate-400 min-h-[80px]"
+                    placeholder="Écrivez votre réponse..."
                     value={manualText}
                     onChange={(e) => setManualText(e.target.value)}
                     disabled={state === 'submitting'}
@@ -424,13 +432,13 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                     if (isListening) stopListening();
                   }}
                 >
-                  {useManualInput ? 'Switch to voice' : 'Switch to text'}
+                  {useManualInput ? 'Passer à la voix' : 'Passer au texte'}
                 </button>
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center">
                 <p className="text-slate-400 text-xs">
-                  {state === 'speaking' ? 'Listening to question...' : 'Waiting...'}
+                  {state === 'speaking' ? 'Écoute de la question...' : 'En attente...'}
                 </p>
               </div>
             )}
@@ -452,10 +460,10 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200
                 ${isListening
                   ? 'bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-500/30 scale-105'
-                  : 'bg-slate-200 hover:bg-slate-300'
+                  : 'bg-slate-100 hover:bg-slate-200'
                 }
               `}
-              title={isListening ? 'Stop recording' : 'Start recording'}
+              title={isListening ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
             >
               {isListening ? (
                 <MicOff className="w-5 h-5 text-white" />
@@ -475,26 +483,26 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
                 (!useManualInput && !activeTranscript && !isListening) ||
                 (useManualInput && !manualText.trim())
               }
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 disabled:shadow-none"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-400 hover:to-blue-600 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-blue-800/20 disabled:shadow-none"
             >
               {state === 'submitting' ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Evaluating...
+                  Évaluation...
                 </>
               ) : isTranscribing ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Transcribing...
+                  Transcription...
                 </>
               ) : isListening ? (
                 <>
                   <Send className="w-4 h-4" />
-                  Stop & Submit
+                  Arrêter & Envoyer
                 </>
               ) : (
                 <>
-                  Submit Answer
+                  Envoyer la réponse
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
@@ -511,9 +519,9 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
               }
             }}
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-              audioEnabled ? 'bg-slate-200 hover:bg-slate-300' : 'bg-rose-600 hover:bg-rose-500'
+              audioEnabled ? 'bg-slate-100 hover:bg-slate-200' : 'bg-rose-600 hover:bg-rose-500'
             }`}
-            title={audioEnabled ? 'Mute audio' : 'Enable audio'}
+            title={audioEnabled ? 'Couper le son' : 'Activer le son'}
           >
             {audioEnabled ? <Volume2 className="w-5 h-5 text-slate-600" /> : <VolumeX className="w-5 h-5 text-white" />}
           </button>
@@ -521,7 +529,7 @@ export default function InterviewPage({ sessionData, onComplete }: InterviewPage
           {/* End call (visual only for now) */}
           <button
             className="w-12 h-12 rounded-full bg-rose-100 hover:bg-rose-600 flex items-center justify-center transition-all group"
-            title="End interview"
+            title="Terminer l'entretien"
             onClick={() => window.location.reload()}
           >
             <PhoneOff className="w-5 h-5 text-rose-500 group-hover:text-white" />

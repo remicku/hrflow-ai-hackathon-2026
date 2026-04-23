@@ -84,7 +84,8 @@ export interface Question {
     | 'experience_validation'
     | 'skill_validation'
     | 'situational_or_technical'
-    | 'projection_motivation';
+    | 'projection_motivation'
+    | 'language_proficiency';
   question: string;
   why_it_matters: string;
   expected_signals: string[];
@@ -108,6 +109,8 @@ export interface Evaluation {
   strengths: string[];
   concerns: string[];
   rationale: string;
+  transcript?: string;
+  question_text?: string;
 }
 
 export interface AnswerResponse {
@@ -150,4 +153,5 @@ export interface Report {
   concerns: string[];
   final_summary: string;
   gaze_summary?: GazeSummary | null;
+  cv_url?: string | null;
 }
