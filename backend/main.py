@@ -411,6 +411,14 @@ async def get_report(
         raise HTTPException(status_code=404, detail="Session not found.")
     report = report_builder.build_report(session.session_id, session.candidate_brief, session.evaluations)
 
+    # Enrich each evaluation with the candidate's transcript and question text
+    answer_by_qid = {a["question_id"]: a.get("transcript", "") for a in session.answers if isinstance(a, dict)}
+    question_by_qid = {q["id"]: q.get("question", "") for q in session.generated_questions if isinstance(q, dict)}
+    for ev in report.get("per_question_evaluations", []):
+        qid = ev.get("question_id")
+        ev["transcript"] = answer_by_qid.get(qid, "")
+        ev["question_text"] = question_by_qid.get(qid, "")
+
     raw_profile = session.raw_profile if isinstance(session.raw_profile, dict) else {}
     normalized_job_offer = session.normalized_job_offer or {}
     raw_job_offer = session.raw_job_offer or {}
@@ -442,6 +450,18 @@ async def get_report(
     gaze_session = session_store.get_session(session_id)
     if gaze_session and gaze_session.gaze_summary:
         report["gaze_summary"] = gaze_session.gaze_summary
+
+    # Extract CV public URL from raw profile attachments
+    profile_data = raw_profile.get("data") if isinstance(raw_profile.get("data"), dict) else raw_profile
+    attachments = profile_data.get("attachments") if isinstance(profile_data, dict) else []
+    cv_url: str | None = None
+    for attachment in (attachments or []):
+        if isinstance(attachment, dict):
+            url = attachment.get("public_url") or attachment.get("url")
+            if url and isinstance(url, str):
+                cv_url = url
+                break
+    report["cv_url"] = cv_url
 
     report["hrflow_profile_job_grade"] = await hrflow_client.grade_profile_for_job(
         source_key=source_key,

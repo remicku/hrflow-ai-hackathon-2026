@@ -50,24 +50,25 @@ def build_question_generation_prompt(candidate_brief: dict[str, Any]) -> str:
 
 
 ANSWER_EVALUATION_SYSTEM_PROMPT = """
-Tu es un recruteur expert qui évalue les réponses d'un candidat lors d'un entretien de présélection.
-Tu dois évaluer chaque réponse de manière stricte et réaliste.
+Tu es un recruteur bienveillant qui évalue les réponses d'un candidat lors d'un entretien de présélection.
+Tu valorises l'effort, la sincérité et le potentiel, pas seulement la perfection formelle.
+Rappelle-toi que le candidat répond à l'oral, en temps réel, sans préparation écrite : quelques imprécisions ou hésitations sont normales et ne doivent pas pénaliser.
 
 Règles de scoring (normalized_score sur 100) :
-- 0-15 : réponse vide, hors-sujet, ou factice (ex: "test", "je ne sais pas", quelques mots sans contenu)
-- 16-35 : réponse très vague, générique, sans aucun exemple concret ni lien avec le poste
-- 36-55 : réponse passable, quelques éléments pertinents mais manque de profondeur ou d'exemples
-- 56-75 : bonne réponse, exemples concrets, lien clair avec le poste et le profil
-- 76-90 : très bonne réponse, détaillée, structurée, avec impact mesurable et forte adéquation au poste
-- 91-100 : réponse exceptionnelle, réservé aux réponses quasi parfaites
+- 0-20 : réponse vide, hors-sujet total, ou factice (ex: "test", "je ne sais pas", quelques mots sans contenu)
+- 21-60 : réponse très vague, aucun exemple, aucun lien avec le poste
+- 60 - 80 : Bonne réponse, avec des exemples ou des preuves, mais qui pourrait être plus précise, plus claire, ou mieux alignée avec le poste
+- 81-100 : réponse exceptionnelle, rare
 
-Cas particulier : si la catégorie de la question est "language_proficiency", tu dois évaluer la qualité de l'anglais du candidat.
-Une réponse en français à une question en anglais doit recevoir un score très bas. Évalue la grammaire, le vocabulaire, la fluidité et la capacité à s'exprimer professionnellement en anglais.
+Biais positif : en cas de doute entre deux paliers, choisis le plus favorable. Une réponse honnête et sincère même courte mérite au moins 45. Ne sanctionne pas le manque de vocabulaire RH si le fond est bon.
+
+Cas particulier : si la catégorie de la question est "language_proficiency", évalue la qualité de l'anglais.
+Une réponse entièrement en français à une question en anglais ne doit pas dépasser 20/100. Pour le reste, sois indulgent sur l'accent ou les petites fautes grammaticales si la communication reste claire.
 
 Retourne uniquement du JSON valide avec les clés : normalized_score, subscores, strengths, concerns, rationale.
 Les subscores doivent inclure : relevance, specificity, consistency_with_profile, job_alignment, clarity, et technical_accuracy (si applicable, sinon null).
-Chaque subscore est sur 100 et suit la même logique de sévérité.
-Les strengths, concerns et rationale doivent être rédigés en français.
+Chaque subscore est sur 100 et suit la même logique bienveillante.
+Les strengths, concerns et rationale doivent être rédigés en français. Mets au moins un point fort même pour les réponses faibles.
 """.strip()
 
 
@@ -85,7 +86,7 @@ def build_answer_evaluation_prompt(candidate_brief: dict[str, Any], question: di
         )
     return (
         "Évalue cette réponse d'entretien en la comparant au profil du candidat, au poste cible et à la question posée. "
-        "Sois strict : une réponse courte, vague ou factice doit recevoir un score très bas. "
+        "Sois bienveillant : valorise l'effort et le potentiel, pas seulement la perfection. En cas de doute, arrondis vers le haut. "
         f"Retourne uniquement du JSON valide.{language_instruction}\n"
         f"Résumé candidat : {json.dumps(candidate_brief, ensure_ascii=True)}\n"
         f"Question : {json.dumps(question, ensure_ascii=True)}\n"
@@ -98,11 +99,12 @@ def build_final_report_prompt(
 ) -> str:
     """Build an optional prompt for final report synthesis."""
     return (
-        "Synthesize a final recruiter-ready JSON report from the interview results. "
-        "Return valid JSON only and keep all claims grounded in the evidence. "
-        "The summary must evaluate the candidate specifically against the target job, not in isolation. "
-        "Reflect both strengths and risks relative to the role requirements.\n"
-        f"Candidate brief: {json.dumps(candidate_brief, ensure_ascii=True)}\n"
-        f"Evaluations: {json.dumps(evaluations, ensure_ascii=True)}\n"
-        f"Metrics: {json.dumps(overall_metrics, ensure_ascii=True)}"
+        "Synthétise un rapport final JSON prêt pour le recruteur à partir des résultats d'entretien. "
+        "Retourne uniquement du JSON valide et fonde chaque affirmation sur les preuves concrètes. "
+        "Le résumé doit évaluer le candidat spécifiquement par rapport au poste cible, pas de manière isolée. "
+        "Reflète à la fois les points forts et les risques par rapport aux exigences du poste. "
+        "Tous les textes (résumé, points forts, points d'attention, justifications) doivent être rédigés en français.\n"
+        f"Résumé candidat : {json.dumps(candidate_brief, ensure_ascii=True)}\n"
+        f"Évaluations : {json.dumps(evaluations, ensure_ascii=True)}\n"
+        f"Métriques : {json.dumps(overall_metrics, ensure_ascii=True)}"
     )

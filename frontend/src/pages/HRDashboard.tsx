@@ -17,22 +17,22 @@ const REC_CONFIG: Record<
   { label: string; icon: React.ReactNode; badgeClass: string }
 > = {
   strong_yes: {
-    label: 'Strong Hire',
+    label: 'Vivement recommandé',
     icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   },
   yes: {
-    label: 'Hire',
+    label: 'Recommandé',
     icon: <ThumbsUp className="w-3.5 h-3.5" />,
     badgeClass: 'bg-green-100 text-green-700 border-green-200',
   },
   mixed: {
-    label: 'Mixed',
+    label: 'Mitigé',
     icon: <AlertTriangle className="w-3.5 h-3.5" />,
     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
   },
   no: {
-    label: 'No Hire',
+    label: 'Non recommandé',
     icon: <ThumbsDown className="w-3.5 h-3.5" />,
     badgeClass: 'bg-rose-100 text-rose-700 border-rose-200',
   },
@@ -99,7 +99,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
       const data = await listInterviews();
       setInterviews(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load interviews.');
+      setError(err instanceof Error ? err.message : 'Impossible de charger les entretiens.');
     } finally {
       setLoading(false);
     }
@@ -116,7 +116,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
       setSelectedName(interview.candidate_name);
       setSelectedReport(report);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load report.');
+      setError(err instanceof Error ? err.message : 'Impossible de charger le rapport.');
     } finally {
       setLoadingReport(null);
     }
@@ -137,8 +137,8 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden">
       {/* Background gradient orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-violet-200/40 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-200/30 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-blue-200/25 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full bg-blue-100/30 blur-3xl" />
       </div>
 
       <div className="relative">
@@ -155,11 +155,11 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
               </button>
               <div className="w-px h-5 bg-slate-200" />
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
                   <BrainCircuit className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <span className="font-bold text-lg text-slate-900">InterviewAI</span>
+                  <span className="font-bold text-lg text-slate-900">Remi AI</span>
                   <span className="ml-2 text-xs text-slate-400 font-medium">Tableau de bord RH</span>
                 </div>
               </div>
@@ -178,7 +178,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
         {/* Page title */}
         <section className="max-w-6xl mx-auto px-8 pt-10 pb-6">
           <div className="flex items-center gap-3 mb-2">
-            <Users className="w-6 h-6 text-violet-600" />
+            <Users className="w-6 h-6 text-blue-600" />
             <h1 className="text-2xl font-bold text-slate-900">Entretiens réalisés</h1>
           </div>
           <p className="text-slate-500 text-sm">
@@ -194,15 +194,15 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                 {
                   label: 'Total entretiens',
                   value: interviews.length,
-                  icon: <BarChart3 className="w-4 h-4 text-indigo-500" />,
+                  icon: <BarChart3 className="w-4 h-4 text-blue-500" />,
                 },
                 {
-                  label: 'Strong Hire',
+                  label: 'Vivement recommandé',
                   value: interviews.filter((i) => i.recommendation === 'strong_yes').length,
                   icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
                 },
                 {
-                  label: 'Hire',
+                  label: 'Recommandé',
                   value: interviews.filter((i) => i.recommendation === 'yes').length,
                   icon: <ThumbsUp className="w-4 h-4 text-green-500" />,
                 },
@@ -278,7 +278,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                       onClick={() => handleSort(field)}
                       className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${
                         active
-                          ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                          ? 'bg-blue-50 border-blue-300 text-blue-700'
                           : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
                       }`}
                     >
@@ -298,10 +298,10 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                     key={interview.session_id}
                     onClick={() => handleOpenReport(interview)}
                     disabled={loadingReport !== null}
-                    className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all duration-150 p-5 flex items-center gap-5 disabled:opacity-60 disabled:cursor-wait group"
+                    className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-150 p-5 flex items-center gap-5 disabled:opacity-60 disabled:cursor-wait group"
                   >
                     {/* Avatar initials */}
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
                       {interview.candidate_name
                         .split(' ')
                         .map((n) => n[0])
@@ -312,7 +312,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
 
                     {/* Main info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-semibold text-slate-900 truncate">
                           {interview.candidate_name}
                         </span>
@@ -339,7 +339,7 @@ export default function HRDashboard({ onBack }: HRDashboardProps) {
                       {isLoadingThis ? (
                         <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                       )}
                     </div>
                   </button>
