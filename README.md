@@ -96,7 +96,7 @@ The project is a `uv` monorepo: the Python backend bundles two packages (`agent`
 ### 1. Clone the repository
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/quentin-lauret/hackathon-ai-hr.git
 cd hackathon-ai-hr
 ```
 
